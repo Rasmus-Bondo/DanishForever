@@ -26,3 +26,13 @@ English game text was compared against the [MultiLanguage](https://github.com/ru
 All Danish text was translated by Claude.
 
 World of Warcraft and all game text are the property of Blizzard Entertainment. This is an unofficial fan project and is not affiliated with Blizzard.
+
+## In-game commands
+- `/dui status` shows which hooks and data tables loaded.
+- `/dui tr <text>` shows how a line is translated, step by step (type `||` for a `|`).
+- `/dui tipdebug on|off` prints tooltip lines live (green = translated, yellow = still English).
+- `/dui capture on|off` and `/dui missed [clear]` save English interface text for the next translation batch.
+- `/dui globals on|off` replaces the game's own string variables (needs `/reload`, can cause taint in rare cases).
+
+## Tested so far
+Loaded and used on Classic Era (2026-10-31). Many tooltip, window and chat fixes came out of that test; see the commit history.

@@ -11,6 +11,7 @@ ItemNames2.lua
 ItemDescs2.lua
 Patterns.lua
 PatternsX.lua
+Captured.lua
 Zones.lua
 Titles.lua
 Factions.lua

@@ -28,7 +28,9 @@ local function apply(entry, text)
             out[#out + 1] = p
         end
     end
-    return table.concat(out)
+    local res = table.concat(out)
+    if res == text then return nil end          -- a template that just hands the English text back is not a translation
+    return res
 end
 
 function ns.translateSpellDesc(text)

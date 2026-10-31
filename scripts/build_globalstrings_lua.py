@@ -6,6 +6,7 @@ import glob, json, re
 FORMAT_ISSUES = re.compile(r"\|[HTAK]")        # links/icons/atlas are kept as translated, only counted below
 
 def lua_val(s):
+    s = s.replace("\\32", " ")            # Blizzard's dump writes a trailing space as the literal text \32 ("%s says:\32")
     s = re.sub(r" +\n", "\n", s)
     s = re.sub(r"\n +", "\n", s)
     return json.dumps(s, ensure_ascii=False)
@@ -24,6 +25,12 @@ for r in rows:
         no_translation += 1
         continue
     table[r["tag"]] = da
+
+# context fixes: the cloak slot is "Kappe"; every other "Back" (buttons) is "Tilbage", never "Ryg"
+CLOAK_TAGS = {"BACKSLOT", "INVTYPE_CLOAK", "HEIRLOOMS_CATEGORY_BACK"}
+for r in rows:
+    if r["text"] == "Back" and r["tag"] in table:
+        table[r["tag"]] = "Kappe" if r["tag"] in CLOAK_TAGS else "Tilbage"
 
 with open("addon/GlobalStrings.lua", "w", encoding="utf-8") as f:
     f.write("local _, ns = ...\n\n-- The game's own UI strings (GlobalStrings): TAG -> Danish.\n")

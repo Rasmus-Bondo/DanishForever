@@ -66,6 +66,39 @@ SlashCmdList.DANISHUI = function(msg)
         if ns.status then ns.status() end
         return
     end
+    local trtext = (msg or ""):match("^tr%s+(.+)$")      -- /dui tr Character Info   (type || for a |)
+    if trtext then
+        trtext = trtext:gsub("||", "|")
+        local out = ns.trDebug and ns.trDebug(trtext)
+        print("DanishUI tr: " .. ((out or "?"):gsub("|", "||")) .. "   Exact has it: " .. tostring(ns.Exact and ns.Exact[trtext] ~= nil))
+        return
+    end
+    local cap = (msg or ""):match("^capture%s*(%a*)$")
+    if cap then
+        ns.capture = (cap == "on")
+        print("DanishUI: capture is " .. (ns.capture and "ON: UI texts that stay English are saved. Show them with /dui missed" or "OFF"))
+        return
+    end
+    local mis = (msg or ""):match("^missed%s*(%a*)$")
+    if mis then
+        local list = {}
+        for t in pairs((DanishUIDB and DanishUIDB.missed) or {}) do list[#list + 1] = t end
+        table.sort(list)
+        if mis == "clear" then
+            if DanishUIDB then DanishUIDB.missed = {} end
+            print("DanishUI: captured list cleared")
+            return
+        end
+        print("DanishUI: " .. #list .. " English UI texts captured (all are saved on /reload). First 40:")
+        for i = 1, math.min(40, #list) do print("  " .. (list[i]:gsub("|", "||"))) end
+        return
+    end
+    local tdbg = (msg or ""):match("^tipdebug%s*(%a*)$")
+    if tdbg then
+        ns.tipdebug = (tdbg == "on")
+        print("DanishUI: tooltip debug is " .. (ns.tipdebug and "ON: tooltip lines that stay English are printed in yellow" or "OFF"))
+        return
+    end
     local arg = (msg or ""):match("^globals%s*(%a*)$")
     if arg then
         DanishUIDB = DanishUIDB or {}
@@ -117,7 +150,8 @@ local function translateProgress()
     if q.p and QuestProgressText then QuestProgressText:SetText(fill(q.p)) end
 end
 if QuestFrameProgressPanel then
-    note("QuestFrameProgressPanel", pcall(QuestFrameProgressPanel.HookScript, QuestFrameProgressPanel, "OnShow", function() safeCall("progress panel", translateProgress) end))
+    local ok, err = pcall(QuestFrameProgressPanel.HookScript, QuestFrameProgressPanel, "OnShow", function() safeCall("progress panel", translateProgress) end)
+    note("QuestFrameProgressPanel", ok, not ok and err or nil)
 else
     note("QuestFrameProgressPanel", false, "frame not found")
 end
@@ -136,13 +170,111 @@ ns.UI = {
 }
 
 local busy = false
+-- Unit tooltip info line: "Level 9 Undead", "Level 60 Undead Priest (Player)", "Level ?? Elite". Words are looked up in
+-- ns.Exact, longest phrase first (up to 3 words, so "Night Elf" works); unknown words stay.
+local function translateWords(rest)
+    local ws, n = {}, 0
+    for w in rest:gmatch("%S+") do n = n + 1; ws[n] = w end
+    local out, i = {}, 1
+    while i <= n do
+        local done = false
+        for len = math.min(3, n - i + 1), 1, -1 do
+            local phrase = table.concat(ws, " ", i, i + len - 1)
+            local pre, core, post = phrase:match("^(%(?)(.-)(%)?)$")
+            local d = ns.Exact and core and ns.Exact[core]
+            if d then
+                out[#out + 1] = pre .. d .. post
+                i = i + len
+                done = true
+                break
+            end
+        end
+        if not done then out[#out + 1] = ws[i]; i = i + 1 end
+    end
+    return table.concat(out, " ")
+end
+
 local function tr(text)
     if issecretvalue and issecretvalue(text) then return text end
     if type(text) ~= "string" or text == "" then return text end
+    if text:find("\194\160", 1, true) then text = (text:gsub("\194\160", " ")) end     -- no-break spaces break every pattern
     local v = ns.UI[text]
     if v then return v end
     v = ns.Exact and ns.Exact[text]                          -- fixed tooltip words
     if v then return v end
+    do                                                       -- "\nRequires Rugged Leather (14), Runecloth (10)": keep the line breaks, translate the rest
+        local lead, core, trail = text:match("^(%s*)(.-)(%s*)$")
+        if core ~= "" and (lead ~= "" or trail ~= "") then
+            local r = tr(core)
+            if r ~= core then return lead .. r .. trail end
+        end
+    end
+    do                                                       -- crafted items, effect and set bonus lines (independent of the pattern engine)
+        local maker = text:match("^<Made by (.+)>$")
+        if maker then return "<Lavet af " .. maker .. ">" end
+        local n, rest = text:match("^%((%d+)%) Set: (.+)$")                   -- "(3) Set: Increases ..."
+        if n then
+            local rv = tr(rest)
+            return "(" .. n .. ") Sæt: " .. rv
+        end
+        for pre, da in pairs({ ["Set: "] = "Sæt: ", ["Use: "] = "Brug: ", ["Equip: "] = "Udstyr: ", ["Chance on hit: "] = "Chance ved træf: " }) do
+            if text:sub(1, #pre) == pre and #text > #pre then
+                return da .. tr(text:sub(#pre + 1))
+            end
+        end
+        -- potion effects: "Absorbs 1300 to 1700 fire damage. Lasts 1 hour." / "Increases your Fire resistance by 90 for 1 hour."
+        local SCHOOL = { fire = "ild", frost = "frost", nature = "natur", shadow = "skygge", arcane = "arkan", holy = "hellig", physical = "fysisk" }
+        local function dur(s)
+            s = s:gsub("(%d+) hours?", "%1 time(r)"):gsub("(%d+) hrs?", "%1 time(r)"):gsub("(%d+) min%a*", "%1 min"):gsub("(%d+) sec%a*", "%1 sek")
+            return s
+        end
+        local a, b, sc, d = text:match("^Absorbs (%d+) to (%d+) (%a+) damage%.%s*Lasts (.+)%.$")
+        if a and SCHOOL[sc:lower()] then return "Absorberer " .. a .. " til " .. b .. " " .. SCHOOL[sc:lower()] .. "skade. Varer " .. dur(d) .. "." end
+        sc, a, d = text:match("^Increases your (%a+) resistance by (%d+) for (.+)%.$")
+        if sc and SCHOOL[sc:lower()] then return "Øger din " .. SCHOOL[sc:lower()] .. "modstand med " .. a .. " i " .. dur(d) .. "." end
+    end
+    do                                                       -- "Requires Level 20" / "Requires level 20" (any capitalisation)
+        local n = text:match("^%s*Requires%s+[Ll]evel%s+(%d+)%s*$")
+        if n then return "Kræver niveau " .. n end
+        local a, b = text:match("^%s*Durability%s*:?%s*(%d+)%s*/%s*(%d+)%s*$")           -- "Durability 55 / 60"
+        if a then return "Holdbarhed " .. a .. " / " .. b end
+        local tp = text:match("^Talent Points:%s*(.+)$")                                  -- talent window
+        if tp then return "Talentpoint: " .. tp end
+        local tree, spent = text:match("^Points spent in (.-) Talents:%s*(.+)$")
+        if tree then
+            local tv = (ns.UI and ns.UI[tree]) or (ns.Exact and ns.Exact[tree]) or tree
+            return "Point brugt i " .. tv .. "-talenter: " .. spent
+        end
+        local rk = text:match("^%(Rank (%d+)%)$")
+        if rk then return "(Rang " .. rk .. ")" end
+    end
+    do                                                       -- a whole line wrapped in a colour: "|cffff2020Requires Level 20|r"
+        local pre, inner, post = text:match("^(|c%x%x%x%x%x%x%x%x)([^|]+)(|r)$")
+        if inner then
+            local iv = tr(inner)
+            if iv ~= inner then return pre .. iv .. post end
+        end
+    end
+    do                                                       -- spell tooltip: "10 sec cooldown", "1.5 min cooldown", "2.5 sec cast"
+        local num, unit, what = text:match("^([%d%.,]+) (%a+) (%a+)$")
+        if num and (what == "cooldown" or what == "cast") then
+            local u = ({ sec = "sek.", min = "min.", hr = "timers", day = "dags", days = "dags" })[unit]
+            if u then return num .. " " .. u .. " " .. (what == "cooldown" and "genopladning" or "besværgelse") end
+        end
+    end
+    do
+        local lvl, rest = text:match("^Level ([%d%?]+)%s*(.*)$")          -- unit tooltip: "Level 9 Undead"
+        if lvl and #text < 60 then
+            return "Niveau " .. lvl .. (rest ~= "" and (" " .. translateWords(rest)) or "")
+        end
+    end
+    do                                                       -- bottom bar tooltips: "Character Info |cffffd100(C)|r"
+        local b, s = text:match("^(.-)(%s*|c%x%x%x%x%x%x%x%x%([^|]-%)|r)$")
+        if b and b ~= "" then
+            local bv = (ns.UI and ns.UI[b]) or (ns.Exact and ns.Exact[b])
+            if bv then return bv .. s end
+        end
+    end
     local count, name = text:match("^(%d+/%d+) (.+)$")      -- "0/1 Sleepers' Key"
     if count then
         local o = (ns.Obj and ns.Obj[name]) or (ns.ItemNames and ns.ItemNames[name])
@@ -170,8 +302,8 @@ local function tr(text)
         if o then return o .. ": " .. ocount end
     end
     if ns.translateSuffix then                               -- "Bent Staff of the Whale"
-        v = ns.translateSuffix(text)
-        if v then return v end
+        local ok, r = pcall(ns.translateSuffix, text)       -- each step is isolated: an error in one must not block the next
+        if ok and r then return r end
     end
     if ns.ItemDescs then
         local inner = text:match('^"(.*)"$')                 -- flavor text is shown in quotes
@@ -181,12 +313,18 @@ local function tr(text)
         if v then return v end
     end
     if ns.translateSpellDesc and #text > 11 then             -- spell descriptions with the numbers filled in
-        v = ns.translateSpellDesc(text)
-        if v then return v end
+        local ok, r = pcall(ns.translateSpellDesc, text)
+        if ok and r and r ~= text then return r end
+        if not ok then ns.lastStageError = "spelldesc: " .. tostring(r) end
     end
     if ns.translatePattern then                              -- "+4 Spirit", "Requires Level 45", ...
-        v = ns.translatePattern(text, tr)
-        if v then return v end
+        local ok, r = pcall(ns.translatePattern, text, tr)
+        if ok and r then return r end
+        if not ok then ns.lastStageError = "pattern: " .. tostring(r) end
+    end
+    if ns.translateCaptured then                             -- text captured in game and translated afterwards (Captured.lua)
+        local ok, r = pcall(ns.translateCaptured, text)
+        if ok and r then return r end
     end
     if #text > 30 and ns.Exact then                          -- mail bodies: the game has filled in the player's name
         local pname = UnitName and UnitName("player")
@@ -195,8 +333,56 @@ local function tr(text)
             if v then return fill(v) end
         end
     end
+    -- Button tooltips add the keybinding: "Character Info |cffffd200(C)|r" or "Spellbook (P)". Translate the name only.
+    local base, suffix = text:match("^(.-)(%s*|c%x%x%x%x%x%x%x%x%([^|]*%)|r)$")
+    if not base or base == "" then
+        base, suffix = text:match("^(.-)(%s%([^%(%)|]+%))$")
+        if suffix and #suffix > 20 then base = nil end
+    end
+    if base and base ~= "" and base ~= text then
+        v = tr(base)
+        if v ~= base then return v .. suffix end
+    end
     return text
 end
+
+-- /dui capture on: remember UI texts that stayed English (saved in DanishUIDB.missed, shown with /dui missed)
+local function missed(t)
+    if type(t) ~= "string" or #t < 2 or #t > 400 or not t:find("%a") then return end
+    if t:find("[\195\133\134\152\166\184]") then return end        -- already Danish (æ ø å): not interesting
+    DanishUIDB = DanishUIDB or {}
+    DanishUIDB.missed = DanishUIDB.missed or {}
+    DanishUIDB.missed[t] = true
+end
+ns.missed = missed
+
+-- /dui tr <text>: the result plus what each step says on its own (an ERROR here explains a whole class of English lines)
+ns.trDebug = function(t)
+    local function stage(label, f, ...)
+        if not f then print("  " .. label .. ": (missing)"); return end
+        local ok, r = pcall(f, ...)
+        print("  " .. label .. ": " .. (ok and (r == nil and "no match" or tostring(r):gsub("|", "||")) or ("ERROR " .. tostring(r))))
+    end
+    stage("spell description", ns.translateSpellDesc, t)
+    stage("patterns", ns.translatePattern, t, tr)
+    if ns.lastStageError then print("  last error seen while translating: " .. ns.lastStageError) end
+    return tr(t)
+end
+
+-- Self-test at login: if the pattern step is broken, say so right away instead of leaving English lines unexplained
+local selfTest = CreateFrame("Frame")
+selfTest:RegisterEvent("PLAYER_LOGIN")
+selfTest:SetScript("OnEvent", function()
+    local bad = {}
+    for en, da in pairs({ ["Classes: Druid"] = "Klasser: Druide", ["Unique (2)"] = "Unik (2)" }) do
+        local ok, r = pcall(tr, en)
+        if not ok or r ~= da then bad[#bad + 1] = en .. " -> " .. tostring(r) end
+    end
+    if #bad > 0 then
+        print("|cffff0000DanishUI self-test failed|r (patterns do not work). Run /dui tr Classes: Druid and send me the output.")
+        for _, b in ipairs(bad) do print("   " .. (b:gsub("|", "||"))) end
+    end
+end)
 
 local function hookSetText(obj)
     safeHook("SetText " .. obj:GetObjectType(), getmetatable(obj).__index, "SetText", function(self, text)
@@ -207,6 +393,8 @@ local function hookSetText(obj)
             busy = true
             pcall(self.SetText, self, new)      -- busy must always be reset, even if SetText fails
             busy = false
+        elseif ns.capture then
+            missed(text)
         end
     end)
 end
@@ -220,7 +408,7 @@ local function retranslate(w)
         local t = w:GetText()
         if issecretvalue and issecretvalue(t) then return end
         local new = tr(t)
-        if new ~= t then w:SetText(new) end
+        if new ~= t then w:SetText(new) elseif ns.capture then missed(t) end
     end
 end
 
@@ -254,9 +442,10 @@ end
 
 safeHook("QuestInfo_Display static", "QuestInfo_Display", retranslateStatic)
 if QuestMapFrame then
-    note("QuestMapFrame", pcall(QuestMapFrame.HookScript, QuestMapFrame, "OnShow", function() safeCall("quest map", retranslateStatic) end))
+    local ok, err = pcall(QuestMapFrame.HookScript, QuestMapFrame, "OnShow", function() safeCall("quest map", retranslateStatic) end)
+    note("QuestMapFrame", ok, not ok and err or nil)
 else
-    note("QuestMapFrame", false, "frame not found (normal in Classic if the quest log is a separate frame)")
+    ns.hookStatus["QuestMapFrame"] = { ok = true, calls = 0, errors = 0, last = "not present in this client (normal, the quest log is a separate frame)" }
 end
 
 -- Item tooltips: lines the tooltip builds without SetText are translated after it is filled in
@@ -264,27 +453,103 @@ local function retranslateTooltip(tip)
     if not tip or not tip.GetName or not tip.NumLines then return end
     local name = tip:GetName()
     if not name then return end
-    pcall(function()
-        for i = 1, tip:NumLines() do
-            retranslate(_G[name .. "TextLeft" .. i])
-            retranslate(_G[name .. "TextRight" .. i])
+    local changed = false
+    for i = 1, tip:NumLines() do
+        for _, side in ipairs({ "TextLeft", "TextRight" }) do
+            local w = _G[name .. side .. i]
+            local t = w and w.GetText and w:GetText()
+            if t and t ~= "" and not (issecretvalue and issecretvalue(t)) then
+                local trok, new
+                if t == "Back" then trok, new = true, "Kappe"      -- the cloak slot; the button "Back" stays "Tilbage"
+                else trok, new = pcall(tr, t) end                  -- one bad line must not stop the others
+                if not trok then
+                    if ns.tipdebug then print("|cffff0000[tip error]|r " .. (t:gsub("|", "||")) .. " : " .. tostring(new)) end
+                    new = t
+                end
+                if new ~= t then
+                    pcall(w.SetText, w, new)
+                    changed = true
+                    if ns.tipdebug then print("|cff00ff00[tip ok]|r " .. (new:gsub("|", "||"))) end
+                elseif ns.tipdebug then
+                    print("|cffffff00[tip]|r " .. (t:gsub("|", "||")))     -- /dui tipdebug on: lines that stayed English
+                end
+                if new == t and ns.capture then
+                    missed(t)                                              -- /dui capture on: also saved for me to read
+                end
+            end
         end
-        tip:Show()      -- re-measure the tooltip after the text changed
-    end)
+    end
+    if changed then pcall(tip.Show, tip) end      -- re-measure the tooltip after the text changed
 end
 
 if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall and Enum and Enum.TooltipDataType then
     for _, kind in ipairs({ "Item", "Spell", "Unit", "Object", "Currency", "Toy", "Mount", "Achievement", "Quest" }) do
         local t = Enum.TooltipDataType[kind]
         if t then
-            note("tooltip " .. kind, pcall(TooltipDataProcessor.AddTooltipPostCall, t, function(tip) safeCall("tooltip " .. kind, retranslateTooltip, tip) end))
+            local ok, err = pcall(TooltipDataProcessor.AddTooltipPostCall, t, function(tip) safeCall("tooltip " .. kind, retranslateTooltip, tip) end)
+            note("tooltip " .. kind, ok, not ok and err or nil)
         end
     end
 elseif GameTooltip and GameTooltip.HookScript then
-    note("tooltip (old API)", pcall(GameTooltip.HookScript, GameTooltip, "OnTooltipSetItem", retranslateTooltip))
+    local ok, err = pcall(GameTooltip.HookScript, GameTooltip, "OnTooltipSetItem", retranslateTooltip)
+    note("tooltip (old API)", ok, not ok and err or nil)
 else
     note("tooltip", false, "no tooltip API found")
 end
+
+-- Buff/debuff tooltips are rebuilt by the game every update (to refresh the timer) without being shown again, so OnShow
+-- is not enough: translate right after every function that fills a tooltip.
+for _, tname in ipairs({ "GameTooltip", "ItemRefTooltip" }) do
+    local tip = _G[tname]
+    if tip then
+        for _, m in ipairs({ "SetUnitAura", "SetUnitBuff", "SetUnitDebuff", "SetPlayerBuff", "SetSpellByID", "SetSpellBookItem",
+                             "SetAction", "SetHyperlink", "SetTrackingSpell", "SetPetAction", "SetShapeshift", "SetTalent",
+                             "SetCurrencyToken", "SetQuestItem", "SetQuestLogItem", "SetInventoryItem", "SetBagItem",
+                             "SetMerchantItem", "SetLootItem", "SetUnit", "SetTradeSkillItem", "SetCraftSpell", "SetCraftItem" }) do
+            if type(tip[m]) == "function" then
+                pcall(hooksecurefunc, tip, m, function(self) safeCall("tooltip " .. tname, retranslateTooltip, self) end)
+            end
+        end
+    end
+end
+
+-- Every tooltip is translated when it is shown. This catches spell tooltips, unit tooltips and the small menu/button
+-- tooltips (GameTooltip:SetText + AddLine), which have no OnTooltipSetItem event. Needed on Classic Era.
+for _, tname in ipairs({ "GameTooltip", "ItemRefTooltip", "ShoppingTooltip1", "ShoppingTooltip2", "ItemRefShoppingTooltip1",
+                         "ItemRefShoppingTooltip2", "EmbeddedItemTooltip", "WorldMapTooltip" }) do
+    local tip = _G[tname]
+    if tip and tip.HookScript then
+        for _, script in ipairs({ "OnShow", "OnTooltipSetSpell", "OnTooltipSetUnit", "OnTooltipSetQuest",
+                                  "OnTooltipSetAchievement", "OnTooltipSetEquipmentSet", "OnTooltipSetDefaultAnchor" }) do
+            local ok, err = pcall(tip.HookScript, tip, script, function(self) safeCall("tooltip " .. tname, retranslateTooltip, self) end)
+            if not ok then ns.hookStatus["tooltip " .. tname .. " " .. script] = { ok = true, calls = 0, errors = 0, last = "no such script here (fine)" } end
+        end
+    end
+end
+
+-- Windows and buttons defined by the game's own XML get their text before any SetText hook can see it. Walk every
+-- top-level window when it is shown (and once more a moment later, after the game filled in its own text).
+local hookedWindows = {}
+local function hookWindow(f)
+    if hookedWindows[f] or not f.HookScript or f.NumLines then return end     -- tooltips are handled above
+    local name = f.GetName and f:GetName() or ""
+    if name:find("^ChatFrame") or name == "WorldFrame" then return end
+    hookedWindows[f] = true
+    pcall(f.HookScript, f, "OnShow", function(self)
+        safeCall("window walk", walk, self, 0)
+        if C_Timer and C_Timer.After then C_Timer.After(0.1, function() safeCall("window walk", walk, self, 0) end) end
+    end)
+end
+local function hookAllWindows()
+    pcall(function() for _, c in ipairs({ UIParent:GetChildren() }) do hookWindow(c) end end)
+end
+hookAllWindows()
+local winEvents = CreateFrame("Frame")
+winEvents:RegisterEvent("PLAYER_LOGIN")
+winEvents:RegisterEvent("ADDON_LOADED")                -- Blizzard's load-on-demand windows appear later
+winEvents:SetScript("OnEvent", function() hookAllWindows() end)
+if ShowUIPanel then safeHook("ShowUIPanel walk", "ShowUIPanel", function(f) if f then walk(f, 0) end end) end
+if ToggleDropDownMenu then safeHook("DropDown walk", "ToggleDropDownMenu", function() walk(DropDownList1, 0) end) end
 
 -- /dui status: which hooks were installed, which data tables loaded, and any errors so far
 local function status()

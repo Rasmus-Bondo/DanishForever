@@ -20,7 +20,7 @@ ns.Exact = {
     ["Equip:"] = "Udstyr:",
 
     -- equipment slots
-    ["Head"] = "Hoved", ["Neck"] = "Hals", ["Shoulder"] = "Skulder", ["Back"] = "Ryg",
+    ["Head"] = "Hoved", ["Neck"] = "Hals", ["Shoulder"] = "Skulder", ["Back"] = "Kappe",
     ["Chest"] = "Bryst", ["Shirt"] = "Skjorte", ["Tabard"] = "Vapenkjortel", ["Wrist"] = "Håndled",
     ["Hands"] = "Hænder", ["Waist"] = "Talje", ["Legs"] = "Ben", ["Feet"] = "Fødder",
     ["Finger"] = "Finger", ["Trinket"] = "Pyntegenstand", ["Main Hand"] = "Hovedhånd",
@@ -125,6 +125,11 @@ add("Requires Level %d", "Kræver niveau %d")
 add("Requires %s (%d)", "Kræver %s (%d)")
 add("Requires %s", "Kræver %s")
 add("Unique (%d)", "Unik (%d)")
+add("Unique-Equipped: %s (%d)", "Unik-Udrustet: %s (%d)")
+add("Unique-Equipped: %s", "Unik-Udrustet: %s")
+add("Reagents: %s", "Reagenser: %s")                -- recipe/crafting lists: each "Item (4)" part is translated on its own
+add("Tools: %s", "Værktøj: %s")
+add("Requires: %s", "Kræver: %s")
 add("Classes: %s", "Klasser: %s")
 add("Races: %s", "Racer: %s")
 add("%d Player", "%d Spillere")           -- raid sizes: "10 Player", "20 Player", "40 Player"
@@ -234,11 +239,16 @@ function ns.translatePattern(text, tr)
             local caps = { text:match(p.pat) }
             if caps[1] then
                 depth = depth + 1
-                for k, c in ipairs(caps) do
-                    if not c:match("^[%d%.]+$") then caps[k] = translateCapture(c, tr) end
-                end
+                local ok = pcall(function()                   -- depth must always go back down, even if tr() fails
+                    for k, c in ipairs(caps) do
+                        if not c:match("^[%d%.]+$") then caps[k] = translateCapture(c, tr) end
+                    end
+                end)
                 depth = depth - 1
-                result = p.fmt:format(unpack(caps))
+                if ok then
+                    local ok2, out = pcall(p.fmt.format, p.fmt, unpack(caps))
+                    if ok2 then result = out end
+                end
                 break
             end
         end

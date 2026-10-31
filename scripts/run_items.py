@@ -7,7 +7,7 @@ KIND = sys.argv[1] if len(sys.argv) > 1 else "items"
 RULES = {"items": "rules/CLAUDE_items.md", "spells": "rules/CLAUDE_spells.md",
          "objects": "rules/CLAUDE_names.md", "creatures": "rules/CLAUDE_names.md", "achievements": "rules/CLAUDE_names.md",
          "factions": "rules/CLAUDE_names.md", "titles": "rules/CLAUDE_names.md", "skills": "rules/CLAUDE_names.md",
-         "globalstrings": "rules/CLAUDE_gs.md", "qtexts": "rules/CLAUDE_qtext.md", "areas": "rules/CLAUDE_names.md", "enchants": "rules/CLAUDE_spells.md", "pagetext": "rules/CLAUDE_qtext.md", "qextra": "rules/CLAUDE_qtext.md", "facdesc": "rules/CLAUDE_qtext.md", "patx": "rules/CLAUDE_patx.md", "mlnames": "rules/CLAUDE_names.md", "mltitles": "rules/CLAUDE_names.md", "mlitems": "rules/CLAUDE_items.md", "mlflavor": "rules/CLAUDE_items.md", "mlspells": "rules/CLAUDE_spells.md", "mlqextra": "rules/CLAUDE_qtext.md", "qplextra": "rules/CLAUDE_qpl.md", "csvmisc": "rules/CLAUDE_names.md", "emotes": "rules/CLAUDE_gs.md", "gossip": "rules/CLAUDE_gossip.md", "vmbooks": "rules/CLAUDE_books.md"}.get(KIND, "rules/CLAUDE_names.md")      # any other table of names uses the names rules
+         "globalstrings": "rules/CLAUDE_gs.md", "qtexts": "rules/CLAUDE_qtext.md", "areas": "rules/CLAUDE_names.md", "enchants": "rules/CLAUDE_spells.md", "pagetext": "rules/CLAUDE_qtext.md", "qextra": "rules/CLAUDE_qtext.md", "facdesc": "rules/CLAUDE_qtext.md", "patx": "rules/CLAUDE_patx.md", "mlnames": "rules/CLAUDE_names.md", "mltitles": "rules/CLAUDE_names.md", "mlitems": "rules/CLAUDE_items.md", "mlflavor": "rules/CLAUDE_items.md", "mlspells": "rules/CLAUDE_spells.md", "mlqextra": "rules/CLAUDE_qtext.md", "qplextra": "rules/CLAUDE_qpl.md", "csvmisc": "rules/CLAUDE_names.md", "emotes": "rules/CLAUDE_gs.md", "gossip": "rules/CLAUDE_gossip.md", "vmbooks": "rules/CLAUDE_books.md", "capture": "rules/CLAUDE_capture.md"}.get(KIND, "rules/CLAUDE_names.md")      # any other table of names uses the names rules
 EN_DIR, DA_DIR = f"{KIND}_chunks_en", f"{KIND}_chunks_da"
 
 PH = re.compile(r"<(?:Name|Class|Race)>")
@@ -55,12 +55,12 @@ def valid(en_path, da_path):
                 return False
             if KIND in ("spells", "enchants", "gossip") and not spell_tokens_ok(a["en"], b["da"]):
                 return False
-            if KIND == "patx" and (sorted(re.findall(r"\{\d+\}", a["en"])) != sorted(re.findall(r"\{\d+\}", b["da"]))
+            if KIND in ("patx", "capture") and (sorted(re.findall(r"\{\d+\}", a["en"])) != sorted(re.findall(r"\{\d+\}", b["da"]))
                                    or a["en"].count("%") != b["da"].count("%")):
                 return False
             if KIND == "vmbooks" and (sorted(re.findall(r"</?[A-Za-z]+>|\$[A-Za-z]", a["en"])) != sorted(re.findall(r"</?[A-Za-z]+>|\$[A-Za-z]", b["da"]))):
                 return False
-            if KIND in ("globalstrings", "enchants", "criteria", "emotes") and not format_tokens_ok(a["en"], b["da"]):
+            if KIND in ("globalstrings", "enchants", "criteria", "emotes", "capture") and not format_tokens_ok(a["en"], b["da"]):
                 return False
         return True
     except (OSError, ValueError, KeyError, TypeError):

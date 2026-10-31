@@ -32,7 +32,7 @@ for i, t in da.items():
 rows.sort(key=lambda r: (-r[0], r[1]))                # most specific first
 
 def q(s):
-    return json.dumps(s, ensure_ascii=False)
+    return json.dumps(s.replace("\\32", " "), ensure_ascii=False)    # literal \32 in the source data is a trailing space
 
 ENGINE = r'''
 -- ---- engine ----
