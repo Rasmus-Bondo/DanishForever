@@ -1,0 +1,5 @@
+Gossip data: Danish text translated by Claude. Lookup keys and hashing method based on PolishForever by Jan Slomian (code MIT, data CC BY 4.0), https://github.com/JSlomian/PolishForever
+
+Quest text: about 330 quests that exist only in this client, and the progress/hand-in texts of about 450 older quests, were translated from the Polish text of PolishForever (data CC BY 4.0), because no English source was available.
+English names and strings that were missing (NPCs, items, spells, Classic Era quests) were found by comparing with the English game-text tables of the MultiLanguage addon by Ruben Zantingh (https://github.com/rubenzantingh/MultiLanguage); only English game text was used, all Danish text is machine-translated.
+PatternsX.lua: the English tooltip/message line patterns were taken from PolishForever (data CC BY 4.0, https://github.com/JSlomian/PolishForever); the Danish templates are machine-translated.
