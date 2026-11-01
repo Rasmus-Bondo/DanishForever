@@ -14,7 +14,7 @@ for f in sorted(glob.glob("capture_chunks_da/names_*.json")):
 
 KEEP = {"PvP", "(PvP)", "Idol", "Invasion"}        # the user wants these left alone ("PvP" must never become "SmS")
 for i, t in list(da.items()):
-    if by_id[i][0] in KEEP:
+    if by_id[i][0] in KEEP or "Dansk (scuffed)" in by_id[i][0] or re.fullmatch(r"\(Rang \{1\}\)", by_id[i][0]):
         da[i] = by_id[i][0]
 
 def q(s):
@@ -24,6 +24,10 @@ TOK = re.compile(r"\{(\d+)\}")
 exact, pats = [], []
 for i, t in sorted(da.items()):
     en, is_pat = by_id[i]
+    if "Dansk (scuffed)" in en or "Danish Forever" in en or "DanishForever" in en:
+        continue                                # the addon's own name in the AddOns list / minimap text
+    if re.match(r"^Your .+ reputation has (?:increased|decreased) by", en):
+        continue                                # Core.lua has one general rule for these; no per-faction entries
     if not is_pat:
         exact.append((en, t))
         continue

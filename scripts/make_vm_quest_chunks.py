@@ -4,7 +4,8 @@
 import os; os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "work"))   # scripts always run with work/ as the working directory
 import glob, json, os, re, sqlite3, sys
 
-THEIRS = {int(m.group(1)) for l in open(sys.argv[1], encoding="utf-8") for m in [re.match(r"^\[(\d+)\]=\{", l)] if m}
+ALL = sys.argv[1] == "ALL"                   # "ALL": every vmangos quest we still lack (Classic Era has more quests than PolishForever lists)
+THEIRS = set() if ALL else {int(m.group(1)) for l in open(sys.argv[1], encoding="utf-8") for m in [re.match(r"^\[(\d+)\]=\{", l)] if m}
 known = set()
 for f in glob.glob("chunks_en/*.json"):
     known |= {q["id"] for q in json.load(open(f, encoding="utf-8"))}
@@ -33,6 +34,10 @@ def convert(s):
     s = s.strip()
     return s or None
 
+if ALL:
+    THEIRS = set(best)
+    lua = open("Data_Quests.lua", encoding="utf-8").read().split("ns.Obj = {")[0]      # quests already in the addon (any source)
+    known |= {int(x) for x in re.findall(r"^\s*\[(\d+)\] = \{", lua, re.M)}
 new, skipped = [], []
 for qid in sorted(THEIRS - known):
     r = best.get(qid)

@@ -2,7 +2,7 @@ local addonName, ns = ...
 
 -- 1. Always on: every GlobalString whose English text has no placeholders becomes a fixed-word entry, so
 --    the SetText hook can swap it wherever it is drawn. The English value is read from the client itself.
--- 2. Opt-in (/dui globals on, then /reload): replace the game's own string variables with the Danish text.
+-- 2. Opt-in (/df globals on, then /reload): replace the game's own string variables with the Danish text.
 --    This translates texts that are built with format codes (%s, %d). The risk is taint: other addons or
 --    Blizzard code that read the changed variables can get "action blocked" errors, so test out of combat.
 
@@ -22,7 +22,7 @@ frame:RegisterEvent("ADDON_LOADED")
 frame:SetScript("OnEvent", function(self, _, name)
     if name ~= addonName then return end
     self:UnregisterEvent("ADDON_LOADED")
-    DanishUIDB = DanishUIDB or {}
+    DanishForeverDB = DanishForeverDB or {}
 
     local exact = ns.Exact
     for tag, da in pairs(ns.GlobalStrings or {}) do
@@ -33,7 +33,7 @@ frame:SetScript("OnEvent", function(self, _, name)
         end
     end
 
-    if DanishUIDB.globals then
+    if DanishForeverDB.globals then
         ns.ApplyGlobals()
     end
 end)

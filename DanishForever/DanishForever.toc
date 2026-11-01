@@ -1,7 +1,7 @@
 ## Interface: 16001
-## Title: Dansk (scuffed)
-## Notes: Machine-translated quest text, one pass, no regrets
-## SavedVariables: DanishUIDB
+## Title: Danish Forever
+## Notes: Joke Danish translation of WoW Classic. Machine-translated, one pass, no regrets.
+## SavedVariables: DanishForeverDB
 Data_Quests.lua
 QuestExtra.lua
 QuestExtraPL.lua

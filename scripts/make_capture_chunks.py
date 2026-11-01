@@ -1,5 +1,5 @@
-# make_capture_chunks.py - English UI/tooltip lines captured in game (/dui capture on) -> translatable chunks
-# Reads DanishUI.lua from every WoW SavedVariables folder, drops text that is already Danish / already translated by the
+# make_capture_chunks.py - English UI/tooltip lines captured in game (/df capture on) -> translatable chunks
+# Reads DanishForever.lua from every WoW SavedVariables folder, drops text that is already Danish / already translated by the
 # addon / meaningless, turns changing numbers into {1} {2} ... placeholders, and writes ONLY NEW entries as
 # capture_chunks_en/names_NNNN.json ({"i", "en"}). capture_state.json remembers what was seen, so every run adds to it.
 # Then: python scripts\run_items.py capture ; python scripts\build_capture_lua.py ; install work\addon\Captured.lua
@@ -7,7 +7,7 @@ import os; os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..
 import glob, json, re, sys
 
 WOW = r"C:\Program Files (x86)\World of Warcraft"
-ADDON = os.path.join(WOW, "_classic_beta_", "Interface", "AddOns", "DanishUI")
+ADDON = os.path.join(WOW, "_classic_beta_", "Interface", "AddOns", "DanishForever")
 PER_CHUNK = 60
 NUM = re.compile(r"\d+(?:[.,]\d+)*")
 COLOR = re.compile(r"\|c[0-9a-fA-F]{8}|\|r|\|n|\|T[^|]*\|t|\|H[^|]*\|h|\|h|\|A[^|]*\|a|\|K[^|]*\|k")
@@ -18,7 +18,7 @@ def unlua(s):
 
 def captured():
     out = []
-    for p in glob.glob(os.path.join(WOW, "*", "WTF", "Account", "*", "SavedVariables", "DanishUI.lua")):
+    for p in glob.glob(os.path.join(WOW, "*", "WTF", "Account", "*", "SavedVariables", "DanishForever.lua")):
         txt = open(p, encoding="utf-8", errors="replace").read()
         out += [unlua(m.group(1)) for m in re.finditer(r'^\["((?:[^"\\]|\\.)*)"\] = true,$', txt, re.M)]
     return out
@@ -63,17 +63,35 @@ def looks_danish(text):
     en_only = [w for w in words if w in EN_WORDS and w not in DA_WORDS]
     return len(da_only) >= 1 and not en_only
 
+def is_player_name(text):
+    """Who list / friends list / chat names: nothing to translate"""
+    t = text.strip()
+    if re.match(r"^[A-Za-z]+: \{1\} entries$", t) or re.match(r"^\|cff[0-9a-f]{6}(ok|FAIL)\|r ", t, re.I) or "DanishForever status" in t or "DanishUI status" in t:
+        return True                                     # the addon's own /df status output
+    if len(t) < 50 and re.search(r"\b[A-Za-z]{3,20}-[A-Z][a-z]{3,15}$", t):
+        return True                                     # "Player-Realm" with a title in front
+    if "|K" in t or "|Hplayer" in t or "Interface\\AddOns" in t:      # Battle.net strings, chat lines from players, other addons' icons
+        return True
+    if re.fullmatch(r"[A-Za-z]{2,20}-[A-Za-z]{2,20}", t):    # Name-Realm
+        return True
+    if re.fullmatch(r"[A-Z][a-z]{2,20}", t) and t.lower() not in EN_WORDS and t.lower() not in DA_WORDS:
+        return True                                     # one capitalised word we have never seen in any table: a character name
+    return False
+
 state_path = "capture_state.json"
 state = json.load(open(state_path, encoding="utf-8")) if os.path.exists(state_path) else {"next": 0, "items": {}}
 known = known_keys()
 seen_in_game = captured()
 new, skipped = [], {"danish": 0, "known": 0, "meaningless": 0, "old": 0}
 for text in sorted(set(seen_in_game)):
-    if re.search(r"[æøåÆØÅ]", text) or text.startswith("DanishUI") or looks_danish(text):
+    if re.search(r"[æøåÆØÅ]", text) or text.startswith(("DanishUI", "DanishForever", "Danish Forever")) or looks_danish(text):
         skipped["danish"] += 1
         continue
     if re.search(r"\|c(?![0-9a-fA-F]{8})", text) or re.search(r"\|c[0-9a-fA-F]{8}#", text):
         skipped["meaningless"] += 1           # broken colour code, or a Battle.net tag (name#1234): nothing to translate
+        continue
+    if is_player_name(text):
+        skipped["meaningless"] += 1           # Who/friends list entries: "Name-Realm", "|Kj18|k", single unknown words
         continue
     if "|Hchannel" in text or re.match(r"^\{?\d*\}?\.?(General|Trade|LocalDefense|LookingForGroup|world|WorldDefense|GuildRecruitment)", text):
         skipped["meaningless"] += 1           # chat channel names are matched by the game itself; translating them would break channels

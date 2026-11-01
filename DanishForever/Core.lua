@@ -12,7 +12,7 @@ local function fill(s)
 end
 
 -- Every hook is installed and run through pcall, so one wrong frame name or API call cannot stop the rest of the
--- addon. Errors are counted per hook and shown by /dui status.
+-- addon. Errors are counted per hook and shown by /df status.
 ns.hookStatus = {}
 local function note(name, ok, err)
     local s = ns.hookStatus[name] or { ok = ok, calls = 0, errors = 0 }
@@ -59,64 +59,64 @@ local function currentQuestID()
     return 0
 end
 
--- /dui 1089 prints the Danish title and text for quest 1089
-SLASH_DANISHUI1 = "/dui"
-SlashCmdList.DANISHUI = function(msg)
+-- /df 1089 prints the Danish title and text for quest 1089
+SLASH_DANISHFOREVER1 = "/df"
+SlashCmdList.DANISHFOREVER = function(msg)
     if (msg or ""):match("^%s*status%s*$") then
         if ns.status then ns.status() end
         return
     end
-    local trtext = (msg or ""):match("^tr%s+(.+)$")      -- /dui tr Character Info   (type || for a |)
+    local trtext = (msg or ""):match("^tr%s+(.+)$")      -- /df tr Character Info   (type || for a |)
     if trtext then
         trtext = trtext:gsub("||", "|")
         local out = ns.trDebug and ns.trDebug(trtext)
-        print("DanishUI tr: " .. ((out or "?"):gsub("|", "||")) .. "   Exact has it: " .. tostring(ns.Exact and ns.Exact[trtext] ~= nil))
+        print("DanishForever tr: " .. ((out or "?"):gsub("|", "||")) .. "   Exact has it: " .. tostring(ns.Exact and ns.Exact[trtext] ~= nil))
         return
     end
     local cap = (msg or ""):match("^capture%s*(%a*)$")
     if cap then
         ns.capture = (cap == "on")
-        print("DanishUI: capture is " .. (ns.capture and "ON: UI texts that stay English are saved. Show them with /dui missed" or "OFF"))
+        print("DanishForever: capture is " .. (ns.capture and "ON: UI texts that stay English are saved. Show them with /df missed" or "OFF"))
         return
     end
     local mis = (msg or ""):match("^missed%s*(%a*)$")
     if mis then
         local list = {}
-        for t in pairs((DanishUIDB and DanishUIDB.missed) or {}) do list[#list + 1] = t end
+        for t in pairs((DanishForeverDB and DanishForeverDB.missed) or {}) do list[#list + 1] = t end
         table.sort(list)
         if mis == "clear" then
-            if DanishUIDB then DanishUIDB.missed = {} end
-            print("DanishUI: captured list cleared")
+            if DanishForeverDB then DanishForeverDB.missed = {} end
+            print("DanishForever: captured list cleared")
             return
         end
-        print("DanishUI: " .. #list .. " English UI texts captured (all are saved on /reload). First 40:")
+        print("DanishForever: " .. #list .. " English UI texts captured (all are saved on /reload). First 40:")
         for i = 1, math.min(40, #list) do print("  " .. (list[i]:gsub("|", "||"))) end
         return
     end
     local tdbg = (msg or ""):match("^tipdebug%s*(%a*)$")
     if tdbg then
         ns.tipdebug = (tdbg == "on")
-        print("DanishUI: tooltip debug is " .. (ns.tipdebug and "ON: tooltip lines that stay English are printed in yellow" or "OFF"))
+        print("DanishForever: tooltip debug is " .. (ns.tipdebug and "ON: tooltip lines that stay English are printed in yellow" or "OFF"))
         return
     end
     local arg = (msg or ""):match("^globals%s*(%a*)$")
     if arg then
-        DanishUIDB = DanishUIDB or {}
+        DanishForeverDB = DanishForeverDB or {}
         if arg == "on" then
-            DanishUIDB.globals = true
-            print("DanishUI: game strings will be replaced after /reload. Turn off with /dui globals off.")
+            DanishForeverDB.globals = true
+            print("DanishForever: game strings will be replaced after /reload. Turn off with /df globals off.")
         elseif arg == "off" then
-            DanishUIDB.globals = false
-            print("DanishUI: game strings go back to English after /reload.")
+            DanishForeverDB.globals = false
+            print("DanishForever: game strings go back to English after /reload.")
         else
-            print("DanishUI: replacing game strings is " .. (DanishUIDB.globals and "ON" or "OFF") .. ". Use /dui globals on|off")
+            print("DanishForever: replacing game strings is " .. (DanishForeverDB.globals and "ON" or "OFF") .. ". Use /df globals on|off")
         end
         return
     end
     local id = tonumber(msg)
     local q = id and ns.Quests[id]
     if not q then
-        print("DanishUI: no translation for quest " .. tostring(msg))
+        print("DanishForever: no translation for quest " .. tostring(msg))
         return
     end
     print("|cff00ff00" .. (q.n or "?") .. "|r")
@@ -202,6 +202,20 @@ local function tr(text)
     if v then return v end
     v = ns.Exact and ns.Exact[text]                          -- fixed tooltip words
     if v then return v end
+    do                                                       -- tracker/list lines start with a dash or a small icon: "- Rockjaw Trogg slain: 3/6", "|T...|t Name slain: 6/6"
+        local pre, rest = text:match("^(%s*%-%s+)(.+)$")
+        if not pre then pre, rest = text:match("^(|T[^|]*|t%s*)(.+)$") end
+        if not pre then pre, rest = text:match("^(|A[^|]*|a%s*)(.+)$") end
+        if pre and rest ~= "" then
+            local r = tr(rest)
+            if r ~= rest then return pre .. r end
+        end
+        local body, post = text:match("^(.-)(%s*|T[^|]*|t)$")                 -- icon at the end of the line
+        if body and body ~= "" then
+            local r = tr(body)
+            if r ~= body then return r .. post end
+        end
+    end
     do                                                       -- "\nRequires Rugged Leather (14), Runecloth (10)": keep the line breaks, translate the rest
         local lead, core, trail = text:match("^(%s*)(.-)(%s*)$")
         if core ~= "" and (lead ~= "" or trail ~= "") then
@@ -210,6 +224,14 @@ local function tr(text)
         end
     end
     do                                                       -- crafted items, effect and set bonus lines (independent of the pattern engine)
+        local fac, amount = text:match("^Your (.+) reputation has increased by (%d+)%.$")      -- reputation messages (Classic wording)
+        if fac then return "Omdømmet hos " .. tr(fac) .. " steg med " .. amount .. "." end
+        fac, amount = text:match("^Your (.+) reputation has decreased by (%d+)%.$")
+        if fac then return "Omdømmet hos " .. tr(fac) .. " faldt med " .. amount .. "." end
+        local standing, fname = text:match("^You are now (%a+) with (.+)%.$")
+        local STANDING = { Hated = "Hadet", Hostile = "Fjendtlig", Unfriendly = "Uvenlig", Neutral = "Neutral", Friendly = "Venlig",
+                           Honored = "Æret", Revered = "Respekteret", Exalted = "Ophøjet" }
+        if standing and STANDING[standing] then return "Du er nu " .. STANDING[standing] .. " hos " .. tr(fname) .. "." end
         local maker = text:match("^<Made by (.+)>$")
         if maker then return "<Lavet af " .. maker .. ">" end
         local n, rest = text:match("^%((%d+)%) Set: (.+)$")                   -- "(3) Set: Increases ..."
@@ -346,17 +368,26 @@ local function tr(text)
     return text
 end
 
--- /dui capture on: remember UI texts that stayed English (saved in DanishUIDB.missed, shown with /dui missed)
+-- /df capture on: remember UI texts that stayed English (saved in DanishForeverDB.missed, shown with /df missed)
 local function missed(t)
     if type(t) ~= "string" or #t < 2 or #t > 400 or not t:find("%a") then return end
     if t:find("[\195\133\134\152\166\184]") then return end        -- already Danish (æ ø å): not interesting
-    DanishUIDB = DanishUIDB or {}
-    DanishUIDB.missed = DanishUIDB.missed or {}
-    DanishUIDB.missed[t] = true
+    DanishForeverDB = DanishForeverDB or {}
+    DanishForeverDB.missed = DanishForeverDB.missed or {}
+    DanishForeverDB.missed[t] = true
 end
 ns.missed = missed
 
--- /dui tr <text>: the result plus what each step says on its own (an ERROR here explains a whole class of English lines)
+-- Record text only if it is still English a moment later: quest, gossip and book windows replace their text after SetText.
+local function missedLater(w, t)
+    if not (C_Timer and C_Timer.After) then return missed(t) end
+    C_Timer.After(0.5, function()
+        local ok, cur = pcall(w.GetText, w)
+        if ok and cur == t then missed(t) end
+    end)
+end
+
+-- /df tr <text>: the result plus what each step says on its own (an ERROR here explains a whole class of English lines)
 ns.trDebug = function(t)
     local function stage(label, f, ...)
         if not f then print("  " .. label .. ": (missing)"); return end
@@ -379,7 +410,7 @@ selfTest:SetScript("OnEvent", function()
         if not ok or r ~= da then bad[#bad + 1] = en .. " -> " .. tostring(r) end
     end
     if #bad > 0 then
-        print("|cffff0000DanishUI self-test failed|r (patterns do not work). Run /dui tr Classes: Druid and send me the output.")
+        print("|cffff0000DanishForever self-test failed|r (patterns do not work). Run /df tr Classes: Druid and send me the output.")
         for _, b in ipairs(bad) do print("   " .. (b:gsub("|", "||"))) end
     end
 end)
@@ -394,9 +425,26 @@ local function hookSetText(obj)
             pcall(self.SetText, self, new)      -- busy must always be reset, even if SetText fails
             busy = false
         elseif ns.capture then
-            missed(text)
+            missedLater(self, text)
         end
     end)
+    -- SetFormattedText ("|cff000000%s|r" quest titles in NPC windows, many labels) never goes through SetText
+    local index = getmetatable(obj).__index
+    if type(index.SetFormattedText) == "function" then
+        safeHook("SetFormattedText " .. obj:GetObjectType(), index, "SetFormattedText", function(self)
+            if busy then return end
+            local t = self:GetText()
+            if type(t) ~= "string" or t == "" or (issecretvalue and issecretvalue(t)) then return end
+            local new = tr(t)
+            if new ~= t then
+                busy = true
+                pcall(self.SetText, self, new)
+                busy = false
+            elseif ns.capture then
+                missedLater(self, t)
+            end
+        end)
+    end
 end
 
 note("hookSetText labels", pcall(function() hookSetText(UIParent:CreateFontString()) end))    -- all text labels
@@ -408,7 +456,7 @@ local function retranslate(w)
         local t = w:GetText()
         if issecretvalue and issecretvalue(t) then return end
         local new = tr(t)
-        if new ~= t then w:SetText(new) elseif ns.capture then missed(t) end
+        if new ~= t then w:SetText(new) elseif ns.capture then missedLater(w, t) end
     end
 end
 
@@ -471,10 +519,10 @@ local function retranslateTooltip(tip)
                     changed = true
                     if ns.tipdebug then print("|cff00ff00[tip ok]|r " .. (new:gsub("|", "||"))) end
                 elseif ns.tipdebug then
-                    print("|cffffff00[tip]|r " .. (t:gsub("|", "||")))     -- /dui tipdebug on: lines that stayed English
+                    print("|cffffff00[tip]|r " .. (t:gsub("|", "||")))     -- /df tipdebug on: lines that stayed English
                 end
                 if new == t and ns.capture then
-                    missed(t)                                              -- /dui capture on: also saved for me to read
+                    missedLater(w, t)                                      -- /df capture on: also saved for me to read
                 end
             end
         end
@@ -527,6 +575,36 @@ for _, tname in ipairs({ "GameTooltip", "ItemRefTooltip", "ShoppingTooltip1", "S
     end
 end
 
+-- Chat: item, spell, quest and achievement links show their name as "[Linen Cloth]" inside |H...|h[...]|h. Chat lines are
+-- not FontString text, so translate the names with the official chat filter (safe for secure code, the link data stays the same).
+local LINK_TYPES = { item = true, spell = true, enchant = true, quest = true, achievement = true, talent = true, trade = true }
+local function translateLinks(msg)
+    return (msg:gsub("(|H(%a+):[^|]*|h)%[(.-)%](|h)", function(open, kind, name, close)
+        if not LINK_TYPES[kind] then return nil end
+        local new = tr(name)
+        if new == name then return nil end
+        return open .. "[" .. new .. "]" .. close
+    end))
+end
+ns.translateLinks = translateLinks
+
+if ChatFrame_AddMessageEventFilter then
+    local function chatFilter(_, _, msg, ...)
+        if type(msg) ~= "string" or issecretvalue and issecretvalue(msg) or not msg:find("|H", 1, true) then return false end
+        local ok, new = pcall(translateLinks, msg)
+        if ok and new ~= msg then return false, new, ... end
+        return false
+    end
+    for _, ev in ipairs({ "CHAT_MSG_LOOT", "CHAT_MSG_SYSTEM", "CHAT_MSG_SKILL", "CHAT_MSG_TRADESKILLS", "CHAT_MSG_SAY", "CHAT_MSG_YELL",
+                          "CHAT_MSG_PARTY", "CHAT_MSG_PARTY_LEADER", "CHAT_MSG_RAID", "CHAT_MSG_RAID_LEADER", "CHAT_MSG_GUILD",
+                          "CHAT_MSG_OFFICER", "CHAT_MSG_WHISPER", "CHAT_MSG_WHISPER_INFORM", "CHAT_MSG_CHANNEL" }) do
+        pcall(ChatFrame_AddMessageEventFilter, ev, chatFilter)
+    end
+    note("chat links", true)
+else
+    note("chat links", false, "ChatFrame_AddMessageEventFilter not found")
+end
+
 -- Windows and buttons defined by the game's own XML get their text before any SetText hook can see it. Walk every
 -- top-level window when it is shown (and once more a moment later, after the game filled in its own text).
 local hookedWindows = {}
@@ -551,9 +629,9 @@ winEvents:SetScript("OnEvent", function() hookAllWindows() end)
 if ShowUIPanel then safeHook("ShowUIPanel walk", "ShowUIPanel", function(f) if f then walk(f, 0) end end) end
 if ToggleDropDownMenu then safeHook("DropDown walk", "ToggleDropDownMenu", function() walk(DropDownList1, 0) end) end
 
--- /dui status: which hooks were installed, which data tables loaded, and any errors so far
+-- /df status: which hooks were installed, which data tables loaded, and any errors so far
 local function status()
-    print("|cff00ff00DanishUI status|r")
+    print("|cff00ff00DanishForever status|r")
     local names = {}
     for k in pairs(ns.hookStatus) do names[#names + 1] = k end
     table.sort(names)

@@ -4,7 +4,7 @@ import os; os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..
 import json, os, sys, time, requests
 
 BASE = "https://forever.warcraftdb.com/api/v1/table/"
-HEADERS = {"User-Agent": "DanishUI-hobby-translation/0.1 (personal WoW addon project; contact: you@example.com)"}
+HEADERS = {"User-Agent": "DanishForever-hobby-translation/0.1 (personal WoW addon project; contact: you@example.com)"}
 DELAY = 1.0
 
 name, token = sys.argv[1], sys.argv[2]

@@ -3,7 +3,7 @@ import os; os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..
 import re, json, time, html, os, requests
 
 BASE = "https://forever.warcraftdb.com"
-HEADERS = {"User-Agent": "DanishUI-hobby-translation/0.1 (personal WoW addon project; contact: you@example.com)"}
+HEADERS = {"User-Agent": "DanishForever-hobby-translation/0.1 (personal WoW addon project; contact: you@example.com)"}
 OUT = "quests_en.jsonl"
 DELAY = 1.5  # seconds between requests, be gentle
 
