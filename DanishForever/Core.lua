@@ -348,6 +348,10 @@ local function tr(text)
         local ok, r = pcall(ns.translateCaptured, text)
         if ok and r then return r end
     end
+    if ns.translateGossipText then                           -- NPC/trainer greetings and options in Classic's own gossip frame
+        local ok, r = pcall(ns.translateGossipText, text)
+        if ok and r then return r end
+    end
     if #text > 30 and ns.Exact then                          -- mail bodies: the game has filled in the player's name
         local pname = UnitName and UnitName("player")
         if pname and pname ~= "" and text:find(pname, 1, true) then
@@ -497,6 +501,7 @@ else
 end
 
 -- Item tooltips: lines the tooltip builds without SetText are translated after it is filled in
+local seenLine = setmetatable({}, { __mode = "k" })    -- line FontString -> the text it had when we last handled it (Danish or untranslatable)
 local function retranslateTooltip(tip)
     if not tip or not tip.GetName or not tip.NumLines then return end
     local name = tip:GetName()
@@ -506,7 +511,7 @@ local function retranslateTooltip(tip)
         for _, side in ipairs({ "TextLeft", "TextRight" }) do
             local w = _G[name .. side .. i]
             local t = w and w.GetText and w:GetText()
-            if t and t ~= "" and not (issecretvalue and issecretvalue(t)) then
+            if t and t ~= "" and seenLine[w] ~= t and not (issecretvalue and issecretvalue(t)) then
                 local trok, new
                 if t == "Back" then trok, new = true, "Kappe"      -- the cloak slot; the button "Back" stays "Tilbage"
                 else trok, new = pcall(tr, t) end                  -- one bad line must not stop the others
@@ -524,6 +529,7 @@ local function retranslateTooltip(tip)
                 if new == t and ns.capture then
                     missedLater(w, t)                                      -- /df capture on: also saved for me to read
                 end
+                seenLine[w] = new                                          -- same text next time (even every frame): nothing to do
             end
         end
     end
@@ -573,6 +579,15 @@ for _, tname in ipairs({ "GameTooltip", "ItemRefTooltip", "ShoppingTooltip1", "S
             if not ok then ns.hookStatus["tooltip " .. tname .. " " .. script] = { ok = true, calls = 0, errors = 0, last = "no such script here (fine)" } end
         end
     end
+end
+
+-- Tooltips for things in the world (herb and ore nodes, chests, signs) are rewritten by the game itself every frame while the
+-- mouse is on them, with no script event we could hook. Check the main tooltip once per frame; seenLine makes that cheap
+-- (a line is only translated again when the game put different text back).
+if GameTooltip and GameTooltip.HookScript then
+    pcall(GameTooltip.HookScript, GameTooltip, "OnUpdate", function(self)
+        if self:IsShown() then safeCall("tooltip update", retranslateTooltip, self) end
+    end)
 end
 
 -- Chat: item, spell, quest and achievement links show their name as "[Linen Cloth]" inside |H...|h[...]|h. Chat lines are

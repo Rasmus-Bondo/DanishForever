@@ -32,6 +32,12 @@ for r in rows:
     if r["text"] == "Back" and r["tag"] in table:
         table[r["tag"]] = "Kappe" if r["tag"] in CLOAK_TAGS else "Tilbage"
 
+# the game term "Charm" (mind control) is "Charme", not "Amulet" (the jewellery word)
+if table.get("LOSS_OF_CONTROL_DISPLAY_CHARM") == "Amuleret":
+    table["LOSS_OF_CONTROL_DISPLAY_CHARM"] = "Charmeret"
+if "OPTION_LOSS_OF_CONTROL_FULL" in table:
+    table["OPTION_LOSS_OF_CONTROL_FULL"] = table["OPTION_LOSS_OF_CONTROL_FULL"].replace("Forvis, Amulet,", "Forvis, Charme,")
+
 with open("addon/GlobalStrings.lua", "w", encoding="utf-8") as f:
     f.write("local _, ns = ...\n\n-- The game's own UI strings (GlobalStrings): TAG -> Danish.\n")
     f.write("-- Globals.lua turns these into fixed-word entries and, if you switch it on, replaces the game's variables.\n")

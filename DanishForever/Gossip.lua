@@ -71,6 +71,62 @@ end
 
 ns.expandDanish = expand
 
+-- Every way of removing some (not necessarily all) occurrences of word from text. clean() strips ALL of them, which
+-- is wrong when the word is also genuine text: "I'm a mage trainer, and you're a mage." for a mage (only the last
+-- one was a $c in the original). Capped so a long text cannot explode.
+local function subsets(text, word)
+    if not word or word == "" then return { text } end
+    local spans = {}
+    for _, variant in ipairs({ word, word:lower(), word:upper() }) do
+        local from = 1
+        while true do
+            local s, e = text:find(variant, from, true)
+            if not s then break end
+            local before, after = text:sub(s - 1, s - 1), text:sub(e + 1, e + 1)
+            if not before:find("%w") and not after:find("%w") then spans[#spans + 1] = { s, e } end
+            from = e + 1
+        end
+    end
+    table.sort(spans, function(a, b) return a[1] < b[1] end)
+    local n = #spans
+    if n == 0 then return { text } end
+    if n > 4 then n = 4 end
+    local out = {}
+    for mask = 0, 2 ^ n - 1 do
+        local parts, pos = {}, 1
+        for i = 1, n do
+            parts[#parts + 1] = text:sub(pos, spans[i][1] - 1)
+            if math.floor(mask / 2 ^ (i - 1)) % 2 == 0 then   -- bit clear: this occurrence was a $c/$r, remove it
+                -- removed
+            else
+                parts[#parts + 1] = text:sub(spans[i][1], spans[i][2])
+            end
+            pos = spans[i][2] + 1
+        end
+        parts[#parts + 1] = text:sub(pos)
+        out[#out + 1] = table.concat(parts)
+    end
+    return out
+end
+
+local function fallbackLookup(english, data)
+    local text = english:gsub("[\r\n]", "")
+    local name = UnitName("player")
+    if name and name ~= "" then
+        text = text:gsub(escape(name), "")
+        text = text:gsub(escape(name:upper()), "")
+    end
+    text = text:gsub("%$[BbNnRrCc]%$?", "")
+    for _, a in ipairs(subsets(text, UnitClass("player"))) do
+        for _, b in ipairs(subsets(a, UnitRace("player"))) do
+            local da = data[hash(b)]
+            if da then return da end
+        end
+    end
+end
+
+local missCache, missCount = {}, 0
+
 local function lookup(english)
     local ok, result = pcall(function()
         if type(english) ~= "string" or english == "" or english:sub(-2) == NBSP then return end
@@ -83,6 +139,14 @@ local function lookup(english)
             local trimmed = c:gsub(" %(low level%)", "")
             if trimmed ~= c then da = data[hash(trimmed)] end
         end
+        if not da and not missCache[english] then
+            da = fallbackLookup(english, data)
+            if not da then
+                missCount = missCount + 1
+                if missCount > 500 then missCache, missCount = {}, 1 end
+                missCache[english] = true
+            end
+        end
         return da
     end)
     return ok and result or nil
@@ -94,6 +158,15 @@ local function translated(english)
         local ok, text = pcall(expand, da)
         return (ok and text or da) .. NBSP
     end
+end
+
+-- for Core.lua's tr(): gossip/trainer texts shown in frames this file does not know (Classic's old GossipFrame)
+function ns.translateGossipText(text)
+    if type(text) ~= "string" or #text < 8 or #text > 1500 or not text:find(" ", 1, true) then return nil end
+    local da = lookup(text)
+    if not da then return nil end
+    local ok, out = pcall(expand, da)
+    return ok and out or da
 end
 
 local function applyText(fs, english)

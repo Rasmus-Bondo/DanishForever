@@ -118,3 +118,13 @@ local t = {
 for en, da in pairs(t) do
     if ns.Exact[en] == nil then ns.Exact[en] = da end
 end
+
+-- Profession names: the generated tables disagree (Fortryllings / Fortryllingskunst / Fortryllelse ...), so force one name everywhere.
+local professions = {
+    ["Alchemy"] = "Alkymi", ["Blacksmithing"] = "Smedning", ["Enchanting"] = "Fortryllingskunst",
+    ["Engineering"] = "Ingeniørkunst", ["Herbalism"] = "Urtekundskab", ["Leatherworking"] = "Læderarbejde",
+    ["Mining"] = "Minedrift", ["Skinning"] = "Flåning", ["Tailoring"] = "Skrædderi", ["Cooking"] = "Madlavning",
+    ["First Aid"] = "Førstehjælp", ["Fishing"] = "Fiskeri", ["Lockpicking"] = "Låsepikning",
+    ["Jewelcrafting"] = "Juvelsmedekunst", ["Inscription"] = "Indskrift", ["Poisons"] = "Gifte", ["Riding"] = "Ridning",
+}
+for en, da in pairs(professions) do ns.Exact[en] = da end

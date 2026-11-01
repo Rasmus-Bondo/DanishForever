@@ -45,14 +45,14 @@ ns.Exact = {
     ["Arcane"] = "Arkan", ["Holy"] = "Hellig", ["Physical"] = "Fysisk",
 
     -- professions and skills
-    ["Alchemy"] = "Alkymi", ["Blacksmithing"] = "Smedning", ["Enchanting"] = "Fortryllelse",
+    ["Alchemy"] = "Alkymi", ["Blacksmithing"] = "Smedning", ["Enchanting"] = "Fortryllingskunst",
     ["Engineering"] = "Ingeniørkunst", ["Herbalism"] = "Urtekundskab", ["Leatherworking"] = "Læderarbejde",
     ["Mining"] = "Minedrift", ["Skinning"] = "Flåning", ["Tailoring"] = "Skrædderi",
     ["Cooking"] = "Madlavning", ["First Aid"] = "Førstehjælp", ["Fishing"] = "Fiskeri",
-    ["Lockpicking"] = "Dirkning", ["Riding"] = "Ridning",
+    ["Lockpicking"] = "Låsepikning", ["Riding"] = "Ridning",
 
     -- classes and races
-    ["Warrior"] = "Kriger", ["Paladin"] = "Paladin", ["Hunter"] = "Jæger", ["Rogue"] = "Slyngel",
+    ["Warrior"] = "Kriger", ["Paladin"] = "Paladin", ["Hunter"] = "Jæger", ["Rogue"] = "Snigmorder",
     ["Priest"] = "Præst", ["Shaman"] = "Shaman", ["Mage"] = "Magiker", ["Warlock"] = "Heksemester",
     ["Druid"] = "Druide", ["Human"] = "Menneske", ["Dwarf"] = "Dværg", ["Night Elf"] = "Natalf",
     ["Gnome"] = "Gnom", ["Orc"] = "Ork", ["Undead"] = "Udøde", ["Tauren"] = "Tauren", ["Troll"] = "Trold",
@@ -69,7 +69,7 @@ ns.Exact = {
     ["Molten"] = "Smeltende", ["Core Forged"] = "Kernesmedet", ["Bloodied"] = "Blodige",
     ["Shadowflame"] = "Skyggeflamme", ["Timeworn"] = "Tidsslidt", ["Void-Touched"] = "Tomrumsberørt",
     ["Sanctified"] = "Helliget", ["Soulfrost"] = "Sjælefrost", ["Season of Discovery"] = "Opdagelsens Sæson",
-    ["Scarlet Uniform"] = "Skarlagenrød Uniform", ["Charm"] = "Amulet",
+    ["Scarlet Uniform"] = "Skarlagenrød Uniform", ["Charm"] = "Charme",
     ["Vessel of Transmutation"] = "Transmutationsbeholder", ["PTR Only"] = "Kun PTR", ["Test"] = "Test",
     ["Max Rank"] = "Maks. rang", ["Apprentice"] = "Lærling", ["Journeyman"] = "Svend", ["Expert"] = "Ekspert",
     ["Artisan"] = "Håndværker", ["Scarce"] = "Sjælden", ["Crafted"] = "Håndlavet",

@@ -24,6 +24,12 @@ TOK = re.compile(r"\{(\d+)\}")
 exact, pats = [], []
 for i, t in sorted(da.items()):
     en, is_pat = by_id[i]
+    if re.match(r"^\{1\}:\{2\} \w+ .*says:", en):
+        continue                                # timestamped chat lines (contain player names)
+    if re.search(r"'s Pet$", en) or en.startswith("title of "):
+        continue                                # player pet names / another addon's placeholder text
+    if en in ("CBuHkC", "Djudjaro's Pet") or en.startswith("Wendigo-man"):   # last one is already Danish ("Wendigo Mane")
+        continue                                # random channel name / a player's pet name
     if "Dansk (scuffed)" in en or "Danish Forever" in en or "DanishForever" in en:
         continue                                # the addon's own name in the AddOns list / minimap text
     if re.match(r"^Your .+ reputation has (?:increased|decreased) by", en):
