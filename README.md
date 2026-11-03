@@ -8,7 +8,7 @@ interface are translated literally and playfully. Machine-translated, one pass, 
 untested there. Expect bugs and mixed English/Danish text; please open an issue.
 
 ## Install
-1. Copy the `DanishForever` folder into `World of Warcraft\_classic_era_\Interface\AddOns\` (Classic Era) or
+1. Download the addon from CurseForge, or copy the repository contents into a folder named `DanishForever` inside `World of Warcraft\_classic_era_\Interface\AddOns\` (Classic Era) or
    `World of Warcraft\_classic_beta_\Interface\AddOns\` (Forever beta). It is about 17 MB.
 2. Start the game and make sure **Danish Forever** is ticked on the character screen. On Classic Era you may have to tick
    "Load out of date AddOns", or add your client's number to the `## Interface:` line of `DanishForever.toc`.
@@ -24,13 +24,13 @@ Renamed from "DanishUI" on 2026-11-01. If you have the old `DanishUI` folder, de
 - `/df globals on|off` replaces the game's own string variables (needs `/reload`, can cause taint in rare cases).
 
 ## Repository layout
-- `DanishForever/` - the addon (generated Lua data files plus `Core.lua`).
+- Repository root - the addon itself (`DanishForever.toc`, generated Lua data files plus `Core.lua`); CurseForge packages it as the `DanishForever` folder (see `.pkgmeta`).
 - `scripts/` - the Python tools that scraped sources, ran the translation and built the Lua files. They expect a `work/`
   folder with source data (chunks, glossary, database dumps) that is **not** included here because it is large and
   contains third-party data. They are published for reference.
 
 ## Credits and licences
-See `DanishForever/CREDITS.txt`. In short: gossip keys, the Polish text used for a few hundred quests and the line patterns
+See `CREDITS.txt`. In short: gossip keys, the Polish text used for a few hundred quests and the line patterns
 come from [PolishForever](https://github.com/JSlomian/PolishForever) by Jan Slomian (code MIT, data CC BY 4.0);
 English game text was compared against the [MultiLanguage](https://github.com/rubenzantingh/MultiLanguage) addon by Ruben Zantingh.
 All Danish text was translated by Claude. Code and original work: MIT (see `LICENSE`).
