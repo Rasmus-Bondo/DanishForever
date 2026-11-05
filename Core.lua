@@ -134,13 +134,17 @@ safeHook("QuestInfo_Display", "QuestInfo_Display", function()
 end)
 
 -- The old-style quest log (QuestLogFrame) fills its detail pane with its own function
-safeHook("QuestLog_UpdateQuestDetails", "QuestLog_UpdateQuestDetails", function()
-    local q = ns.Quests[currentQuestID()]
-    if not q then return end
-    if q.n and QuestLogQuestTitle then QuestLogQuestTitle:SetText(q.n) end
-    if q.l and QuestLogObjectivesText then QuestLogObjectivesText:SetText(fill(q.l)) end
-    if q.d and QuestLogQuestDescription then QuestLogQuestDescription:SetText(fill(q.d)) end
-end)
+if type(QuestLog_UpdateQuestDetails) == "function" then
+    safeHook("QuestLog_UpdateQuestDetails", "QuestLog_UpdateQuestDetails", function()
+        local q = ns.Quests[currentQuestID()]
+        if not q then return end
+        if q.n and QuestLogQuestTitle then QuestLogQuestTitle:SetText(q.n) end
+        if q.l and QuestLogObjectivesText then QuestLogObjectivesText:SetText(fill(q.l)) end
+        if q.d and QuestLogQuestDescription then QuestLogQuestDescription:SetText(fill(q.d)) end
+    end)
+else
+    ns.hookStatus["QuestLog_UpdateQuestDetails"] = { ok = true, calls = 0, errors = 0, last = "not present in this client (normal, Forever uses the newer quest log)" }
+end
 
 -- "Have you got the items?" panel shown before the reward
 local function translateProgress()

@@ -7,7 +7,7 @@ import os; os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..
 import glob, json, re, sys
 
 WOW = r"C:\Program Files (x86)\World of Warcraft"
-ADDON = os.path.join(WOW, "_classic_beta_", "Interface", "AddOns", "DanishForever")
+ADDON = os.path.join(WOW, "_forever_", "Interface", "AddOns", "DanishForever")
 PER_CHUNK = 60
 NUM = re.compile(r"\d+(?:[.,]\d+)*")
 COLOR = re.compile(r"\|c[0-9a-fA-F]{8}|\|r|\|n|\|T[^|]*\|t|\|H[^|]*\|h|\|h|\|A[^|]*\|a|\|K[^|]*\|k")
@@ -37,6 +37,14 @@ def known_keys():
         for m in re.finditer(r'^\s*[A-Za-z_]\w*\s*=\s*"((?:[^"\\]|\\.)*)"', txt, re.M):     # GlobalStrings: TAG = "Danish"
             keys.add(unlua(m.group(1)))
     return keys
+
+OTHER_ADDONS = re.compile(
+    r"Hpratcopy|Interface[\\/]|Questie|Farmer|RareScanner|GearQuest|ThreatClassic|OpenMap|LayerSwap|Shortest Path|Dungeon ?Journal|"
+    r"Forever Guide|GTFO|Scrap|^Threat:|DoTs:|drop rates|DROP RATES|gather rates|\bkills?\b|\bgathers\b|Kill streak|Loot: |Farm: |"
+    r"PER KILL|Worth per|Per hour|THIS SESSION|This session|YOUR TOP|Since your last|Best (loot|drops)|Layer C|Detecting|"
+    r"Trainers: my|Map pins|Map size|Map frame|Minimap |Icon size|Drop a pin|Draw on the map|Crosshair|Cursor:|Player: %|"
+    r"Top CPU|Greens: |Bags & Inventory|GATHERING|^\[\{?\d*\}?\]|has been added to your|\{1\}% Threat|^\|c[0-9a-fA-F]{8}\[", re.I)
+LOWER_CHAT = re.compile(r"^[a-z ,.!'-]+$")
 
 WORD = re.compile(r"[A-Za-zÆØÅæøåéüÉ]{3,}")
 
@@ -92,6 +100,9 @@ for text in sorted(set(seen_in_game)):
         continue
     if is_player_name(text):
         skipped["meaningless"] += 1           # Who/friends list entries: "Name-Realm", "|Kj18|k", single unknown words
+        continue
+    if OTHER_ADDONS.search(text) or LOWER_CHAT.search(text):
+        skipped["meaningless"] += 1           # other addons' own UI (Questie, Farmer, Prat chat copy, ...) and lower-case chat
         continue
     if "|Hchannel" in text or re.match(r"^\{?\d*\}?\.?(General|Trade|LocalDefense|LookingForGroup|world|WorldDefense|GuildRecruitment)", text):
         skipped["meaningless"] += 1           # chat channel names are matched by the game itself; translating them would break channels
