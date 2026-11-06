@@ -391,7 +391,7 @@ local function missedLater(w, t)
     if not (C_Timer and C_Timer.After) then return missed(t) end
     C_Timer.After(0.5, function()
         local ok, cur = pcall(w.GetText, w)
-        if ok and cur == t then missed(t) end
+        if ok and not (issecretvalue and issecretvalue(cur)) and cur == t then missed(t) end
     end)
 end
 
@@ -442,7 +442,8 @@ local function hookSetText(obj)
         safeHook("SetFormattedText " .. obj:GetObjectType(), index, "SetFormattedText", function(self)
             if busy then return end
             local t = self:GetText()
-            if type(t) ~= "string" or t == "" or (issecretvalue and issecretvalue(t)) then return end
+            if issecretvalue and issecretvalue(t) then return end      -- secret values must be checked before any comparison
+            if type(t) ~= "string" or t == "" then return end
             local new = tr(t)
             if new ~= t then
                 busy = true
@@ -515,7 +516,7 @@ local function retranslateTooltip(tip)
         for _, side in ipairs({ "TextLeft", "TextRight" }) do
             local w = _G[name .. side .. i]
             local t = w and w.GetText and w:GetText()
-            if t and t ~= "" and seenLine[w] ~= t and not (issecretvalue and issecretvalue(t)) then
+            if t and not (issecretvalue and issecretvalue(t)) and type(t) == "string" and t ~= "" and seenLine[w] ~= t then
                 local trok, new
                 if t == "Back" then trok, new = true, "Kappe"      -- the cloak slot; the button "Back" stays "Tilbage"
                 else trok, new = pcall(tr, t) end                  -- one bad line must not stop the others

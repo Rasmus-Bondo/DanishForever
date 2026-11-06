@@ -177,7 +177,8 @@ end
 -- option buttons hold coloured text like "|cff0000ffTitle|r"
 local function applyOption(button)
     local text = button.GetText and button:GetText()
-    if type(text) ~= "string" or text == "" or (issecretvalue and issecretvalue(text)) then return end
+    if issecretvalue and issecretvalue(text) then return end
+    if type(text) ~= "string" or text == "" then return end
     local prefix = text:match("^(|c%x%x%x%x%x%x%x%x)") or ""
     local suffix = prefix ~= "" and "|r" or ""
     local plain = text:gsub("^|c%x%x%x%x%x%x%x%x", ""):gsub("|r$", "")
