@@ -1,20 +1,38 @@
 # Danish Forever
 
-A joke, deliberately scuffed Danish translation addon for **World of Warcraft Classic** (the "Forever" beta, Interface 16001,
+A joke, deliberately scuffed Danish translation addon for **World of Warcraft Classic** (the Forever client, Interface 16001,
 and Classic Era). Quests, items, spells, NPC names and gossip, books, achievements, tooltips, chat links and most of the
 interface are translated literally and playfully. Machine-translated, one pass, no regrets.
 
-**Status:** used and tested on Classic Era since 2026-10-31. The Forever beta is not playable until 2026-11-05, so it is
-untested there. Expect bugs and mixed English/Danish text; please open an issue.
+**Status:** used and tested on Classic Era since 2026-10-31 and on the Forever client since it became playable on
+2026-11-05. Expect bugs and mixed English/Danish text; please open an issue.
 
 ## Install
 1. Download the addon from CurseForge, or copy the repository contents into a folder named `DanishForever` inside `World of Warcraft\_classic_era_\Interface\AddOns\` (Classic Era) or
-   `World of Warcraft\_classic_beta_\Interface\AddOns\` (Forever beta). It is about 17 MB.
+   `World of Warcraft\_forever_\Interface\AddOns\` (Forever). It is about 17 MB.
 2. Start the game and make sure **Danish Forever** is ticked on the character screen. On Classic Era you may have to tick
    "Load out of date AddOns", or add your client's number to the `## Interface:` line of `DanishForever.toc`.
 3. Type `/df status` to see what loaded.
 
 Renamed from "DanishUI" on 2026-11-01. If you have the old `DanishUI` folder, delete it. The slash command is now `/df`.
+
+## Help translate: capture English text
+Some interface text is still English because it was never in the data the addon was built from. You can help find it:
+
+1. Play normally with your other addons on and type `/df capture on`. Open the windows you want covered: character panel,
+   talents, spellbook, professions, trainers, vendors, mail, the auction house, the map, tooltips, the quest log, and so on.
+   Talking to class trainers and quest givers is especially useful. Text from other addons ends up in the capture too, but
+   we sort it out when processing (we only translate Blizzard's own text), so you don't need to turn anything off.
+2. Type `/reload` (or log out). The game saves the captured lines to
+   `World of Warcraft\_forever_\WTF\Account\<YOUR ACCOUNT>\SavedVariables\DanishForever.lua`
+   (use `_classic_era_` instead of `_forever_` on Classic Era).
+3. Open an issue on GitHub and attach that file, or paste the lines you care about. `/df missed` prints what was captured
+   so far, and `/df missed clear` empties the list.
+
+**Privacy:** the file can contain chat lines and player names that were on screen. Open it in a text editor and delete
+anything you do not want to share before you send it. We throw away names and chat when processing it anyway.
+
+New lines are machine-translated in batches and added to `Captured.lua` in the next release.
 
 ## Commands
 - `/df status` shows which hooks and data tables loaded.

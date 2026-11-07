@@ -61,6 +61,7 @@ local function expand(msg)
     local name  = UnitName("player") or ""
     local race  = UnitRace("player") or ""
     local class = UnitClass("player") or ""
+    class = (ns.classDa and ns.classDa[class]) or class
     msg = msg:gsub("%$[gG]%s*([^:;$]-)%s*:%s*([^;$]-)%s*;", function(m, f) return female and f or m end)
     msg = msg:gsub("%$[bB]", "\n")
     msg = msg:gsub("%$[nN]", function() return name end)

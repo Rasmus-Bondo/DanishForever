@@ -1,9 +1,16 @@
 local _, ns = ...
 
+-- Danish class names, used where quest/gossip text names the player's own class (<Class>, $c)
+ns.classDa = {
+    Warrior = "Kriger", Paladin = "Korsridder", Hunter = "Jæger", Rogue = "Snigmorder", Priest = "Præst",
+    Shaman = "Shaman", Mage = "Magiker", Warlock = "Heksemester", Druid = "Druide",
+}
+
 local function fill(s)
     if not s then return s end
     local name  = (UnitName("player"))
     local class = (UnitClass("player"))
+    class = ns.classDa[class] or class
     local race  = (UnitRace("player"))
     s = s:gsub("<Name>",  function() return name  end)
     s = s:gsub("<Class>", function() return class end)

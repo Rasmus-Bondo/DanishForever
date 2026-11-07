@@ -52,7 +52,7 @@ ns.Exact = {
     ["Lockpicking"] = "Låsepikning", ["Riding"] = "Ridning",
 
     -- classes and races
-    ["Warrior"] = "Kriger", ["Paladin"] = "Paladin", ["Hunter"] = "Jæger", ["Rogue"] = "Snigmorder",
+    ["Warrior"] = "Kriger", ["Paladin"] = "Korsridder", ["Hunter"] = "Jæger", ["Rogue"] = "Snigmorder",
     ["Priest"] = "Præst", ["Shaman"] = "Shaman", ["Mage"] = "Magiker", ["Warlock"] = "Heksemester",
     ["Druid"] = "Druide", ["Human"] = "Menneske", ["Dwarf"] = "Dværg", ["Night Elf"] = "Natalf",
     ["Gnome"] = "Gnom", ["Orc"] = "Ork", ["Undead"] = "Udøde", ["Tauren"] = "Tauren", ["Troll"] = "Trold",
@@ -69,7 +69,7 @@ ns.Exact = {
     ["Molten"] = "Smeltende", ["Core Forged"] = "Kernesmedet", ["Bloodied"] = "Blodige",
     ["Shadowflame"] = "Skyggeflamme", ["Timeworn"] = "Tidsslidt", ["Void-Touched"] = "Tomrumsberørt",
     ["Sanctified"] = "Helliget", ["Soulfrost"] = "Sjælefrost", ["Season of Discovery"] = "Opdagelsens Sæson",
-    ["Scarlet Uniform"] = "Skarlagenrød Uniform", ["Charm"] = "Charme",
+    ["Scarlet Uniform"] = "Blodrød Uniform", ["Charm"] = "Charme",
     ["Vessel of Transmutation"] = "Transmutationsbeholder", ["PTR Only"] = "Kun PTR", ["Test"] = "Test",
     ["Max Rank"] = "Maks. rang", ["Apprentice"] = "Lærling", ["Journeyman"] = "Svend", ["Expert"] = "Ekspert",
     ["Artisan"] = "Håndværker", ["Scarce"] = "Sjælden", ["Crafted"] = "Håndlavet",
