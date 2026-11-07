@@ -6,7 +6,7 @@ local t = {
     -- bottom bar (micro button) tooltips; the keybinding "(C)" is split off by tr() in Core.lua
     ["Character Info"] = "Karakterinfo", ["Spellbook & Abilities"] = "Besværgelsesbog & Evner", ["Talents"] = "Begavelser",
     ["Quest Log"] = "Quest-logbog", ["Social"] = "Socialt", ["World Map"] = "Verdenskort", ["Main Menu"] = "Spilmenu",
-    ["Achievements"] = "Bedrifter", ["Guild"] = "Laug", ["Collections"] = "Samlinger", ["Adventure Guide"] = "Eventyrvejledning",
+    ["Achievements"] = "Bedrifter", ["Guild"] = "Klan", ["Collections"] = "Samlinger", ["Adventure Guide"] = "Eventyrvejledning",
     ["Group Finder"] = "Gruppefinder", ["Dungeon Finder"] = "Fangehulsfinder", ["Professions"] = "Erhverv",
     ["Game Menu"] = "Spilmenu", ["Help"] = "Hjælp", ["Shop"] = "Butik", ["Bags"] = "Tasker", ["Backpack"] = "Rygsæk",
     -- "Unique-Equipped: <category> (n)": these are item limit category names, not item names

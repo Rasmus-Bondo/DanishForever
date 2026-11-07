@@ -205,7 +205,10 @@ local function translateWords(rest)
     return table.concat(out, " ")
 end
 
-local function tr(text)
+local tr                                                     -- cached wrapper, defined after trRaw (trRaw calls it for sub-parts)
+local trCache, trCacheN = {}, 0
+
+local function trRaw(text)
     if issecretvalue and issecretvalue(text) then return text end
     if type(text) ~= "string" or text == "" then return text end
     if text:find("\194\160", 1, true) then text = (text:gsub("\194\160", " ")) end     -- no-break spaces break every pattern
@@ -408,6 +411,26 @@ local function tr(text)
     return text
 end
 
+-- The map and other busy frames set the same labels over and over; the result for a given text never changes, so keep it
+-- (untranslatable text too, which is the expensive case: it runs through every step before giving up).
+tr = function(text)
+    if type(text) ~= "string" or #text > 600 or (issecretvalue and issecretvalue(text)) then return trRaw(text) end
+    local c = trCache[text]
+    if c then return c end
+    local r = trRaw(text)
+    if type(r) == "string" then
+        trCacheN = trCacheN + 1
+        if trCacheN > 40000 then trCache, trCacheN = {}, 1 end
+        trCache[text] = r
+    end
+    return r
+end
+
+local cacheReset = CreateFrame("Frame")                      -- player name, class and data can change while loading in
+cacheReset:RegisterEvent("PLAYER_LOGIN")
+cacheReset:RegisterEvent("PLAYER_ENTERING_WORLD")
+cacheReset:SetScript("OnEvent", function() trCache, trCacheN = {}, 0 end)
+
 -- /df capture on: remember UI texts that stayed English (saved in DanishForeverDB.missed, shown with /df missed)
 local function missed(t)
     if type(t) ~= "string" or #t < 2 or #t > 400 or not t:find("%a") then return end
@@ -574,9 +597,8 @@ local function retranslateTooltip(tip)
 end
 
 if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall and Enum and Enum.TooltipDataType then
-    for _, kind in ipairs({ "Item", "Spell", "Unit", "Object", "Currency", "Toy", "Mount", "Achievement", "Quest" }) do
-        local t = Enum.TooltipDataType[kind]
-        if t then
+    for kind, t in pairs(Enum.TooltipDataType) do         -- every tooltip type, including UnitAura (buffs and debuffs)
+        if type(kind) == "string" and type(t) == "number" then
             local ok, err = pcall(TooltipDataProcessor.AddTooltipPostCall, t, function(tip) safeCall("tooltip " .. kind, retranslateTooltip, tip) end)
             note("tooltip " .. kind, ok, not ok and err or nil)
         end
@@ -596,7 +618,9 @@ for _, tname in ipairs({ "GameTooltip", "ItemRefTooltip" }) do
         for _, m in ipairs({ "SetUnitAura", "SetUnitBuff", "SetUnitDebuff", "SetPlayerBuff", "SetSpellByID", "SetSpellBookItem",
                              "SetAction", "SetHyperlink", "SetTrackingSpell", "SetPetAction", "SetShapeshift", "SetTalent",
                              "SetCurrencyToken", "SetQuestItem", "SetQuestLogItem", "SetInventoryItem", "SetBagItem",
-                             "SetMerchantItem", "SetLootItem", "SetUnit", "SetTradeSkillItem", "SetCraftSpell", "SetCraftItem" }) do
+                             "SetMerchantItem", "SetLootItem", "SetUnit", "SetTradeSkillItem", "SetCraftSpell", "SetCraftItem",
+                             "SetUnitAuraByAuraInstanceID", "SetUnitBuffByAuraInstanceID", "SetUnitDebuffByAuraInstanceID",
+                             "RefreshData", "ProcessInfo" }) do
             if type(tip[m]) == "function" then
                 pcall(hooksecurefunc, tip, m, function(self) safeCall("tooltip " .. tname, retranslateTooltip, self) end)
             end
