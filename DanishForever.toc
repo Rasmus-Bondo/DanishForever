@@ -50,4 +50,5 @@ Data_Gossip.lua
 BookData.lua
 Books.lua
 Gossip.lua
+AuctionHouse.lua
 Core.lua

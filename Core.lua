@@ -227,6 +227,24 @@ local function tr(text)
             if r ~= body then return r .. post end
         end
     end
+    if text:find("\n- ", 1, true) then                       -- item use text with a list ("Fill the crate with ... list:|cnIQ1:\n- 20 Copper Ore\n- 20 Tin Ore|r"): each line on its own
+        local changed = false
+        local out = text:gsub("([^\r\n]+)", function(line)
+            local pre, rest = line:match("^(Brug: )(.*)$")
+            if not pre then pre, rest = line:match("^(Udstyr: )(.*)$") end
+            pre = pre or ""; rest = rest or line
+            local head, tok, tail = rest:match("^(.-)(|cn[%w_]+:)(.*)$")        -- quality colour marker in the middle of the line
+            local function piece(s)
+                local body, post = s:match("^(.-)(|r)$")
+                if body then local r = tr(body); if r ~= body then changed = true end; return r .. post end
+                local r = tr(s); if r ~= s then changed = true end
+                return r
+            end
+            if head then return pre .. piece(head) .. tok .. piece(tail) end
+            return pre .. piece(rest)
+        end)
+        if changed then return out end
+    end
     do                                                       -- "\nRequires Rugged Leather (14), Runecloth (10)": keep the line breaks, translate the rest
         local lead, core, trail = text:match("^(%s*)(.-)(%s*)$")
         if core ~= "" and (lead ~= "" or trail ~= "") then
@@ -312,6 +330,13 @@ local function tr(text)
     if count then
         local o = (ns.Obj and ns.Obj[name]) or (ns.ItemNames and ns.ItemNames[name])
         if o then return count .. " " .. o end
+    end
+    do                                                       -- "20 Copper Ore" (bundle contents): count, then the item name
+        local cnt, iname = text:match("^(%d+) (.+)$")
+        if cnt then
+            local o = (ns.ItemNames and ns.ItemNames[iname]) or (ns.Obj and ns.Obj[iname]) or (ns.Exact and ns.Exact[iname])
+            if o then return cnt .. " " .. o end
+        end
     end
     if ns.ItemNames then
         v = ns.ItemNames[text]                               -- item names
