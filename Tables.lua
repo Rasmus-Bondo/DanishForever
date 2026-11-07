@@ -5,15 +5,15 @@ local _, ns = ...
 local t = {
     -- bottom bar (micro button) tooltips; the keybinding "(C)" is split off by tr() in Core.lua
     ["Character Info"] = "Karakterinfo", ["Spellbook & Abilities"] = "Besværgelsesbog & Evner", ["Talents"] = "Begavelser",
-    ["Quest Log"] = "Quest-logbog", ["Social"] = "Socialt", ["World Map"] = "Verdenskort", ["Main Menu"] = "Vildtmenu",
+    ["Quest Log"] = "Quest-logbog", ["Social"] = "Socialt", ["World Map"] = "Verdenskort", ["Main Menu"] = "Spilmenu",
     ["Achievements"] = "Bedrifter", ["Guild"] = "Laug", ["Collections"] = "Samlinger", ["Adventure Guide"] = "Eventyrvejledning",
     ["Group Finder"] = "Gruppefinder", ["Dungeon Finder"] = "Fangehulsfinder", ["Professions"] = "Erhverv",
-    ["Game Menu"] = "Vildtmenu", ["Help"] = "Hjælp", ["Shop"] = "Butik", ["Bags"] = "Tasker", ["Backpack"] = "Rygsæk",
+    ["Game Menu"] = "Spilmenu", ["Help"] = "Hjælp", ["Shop"] = "Butik", ["Bags"] = "Tasker", ["Backpack"] = "Rygsæk",
     -- "Unique-Equipped: <category> (n)": these are item limit category names, not item names
     ["Jeweled Healing Focus"] = "Juvelbesat Helingsfokus", ["Crystallized Tear"] = "Krystalliseret Tåre",
     -- character window stat labels
     ["Armor:"] = "Rustning:", ["Defense:"] = "Forsvar:", ["Damage:"] = "Skade:", ["Power:"] = "Kraft:", ["Attack:"] = "Angreb:",
-    ["Attack Power:"] = "Angrebskraft:", ["Speed:"] = "Hastighed:", ["Rating:"] = "Vurdering:", ["Crit Chance:"] = "Kritisk sjans:",
+    ["Attack Power:"] = "Angrebskraft:", ["Speed:"] = "Hastighed:", ["Rating:"] = "Vurdering:", ["Crit Chance:"] = "Kritisk chance:",
     ["Dodge:"] = "Undvigelse:", ["Parry:"] = "Parering:", ["Block:"] = "Blokering:", ["Resilience:"] = "Sejhed:",
     ["Balance"] = "Ligevægt", ["All Runes"] = "Alle Runer",
     -- power types
