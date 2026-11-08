@@ -100,6 +100,13 @@ SlashCmdList.DANISHFOREVER = function(msg)
         for i = 1, math.min(40, #list) do print("  " .. (list[i]:gsub("|", "||"))) end
         return
     end
+    if (msg or "") == "tipwho" then if ns.tipWho then ns.tipWho() end return end
+    local sdbg = (msg or ""):match("^secret%s*(%a*)$")
+    if sdbg then
+        ns.debugSecret = (sdbg == "on")
+        print("DanishForever: secret-text debug is " .. (ns.debugSecret and "ON: labels whose text the game hides are printed once each" or "OFF"))
+        return
+    end
     local tdbg = (msg or ""):match("^tipdebug%s*(%a*)$")
     if tdbg then
         ns.tipdebug = (tdbg == "on")
@@ -336,7 +343,7 @@ local function trRaw(text)
     end
     do                                                       -- "20 Copper Ore" (bundle contents): count, then the item name
         local cnt, iname = text:match("^(%d+) (.+)$")
-        if cnt then
+        if cnt and #iname > 2 then       -- not "11 m" / "5 s": the one-letter time units would pick up the "m" key-name string
             local o = (ns.ItemNames and ns.ItemNames[iname]) or (ns.Obj and ns.Obj[iname]) or (ns.Exact and ns.Exact[iname])
             if o then return cnt .. " " .. o end
         end
@@ -485,10 +492,19 @@ selfTest:SetScript("OnEvent", function()
     end
 end)
 
+ns.secretSeen = setmetatable({}, { __mode = "k" })
 local function hookSetText(obj)
     safeHook("SetText " .. obj:GetObjectType(), getmetatable(obj).__index, "SetText", function(self, text)
         if busy then return end
-        if issecretvalue and issecretvalue(text) then return end
+        if issecretvalue and issecretvalue(text) then
+            if ns.debugSecret and not ns.secretSeen[self] then
+                ns.secretSeen[self] = true
+                local o, n = self, nil
+                for _ = 1, 6 do n = o and o.GetName and o:GetName(); if n or not (o and o.GetParent) then break end o = o:GetParent() end
+                print("|cffff8800[secret text]|r in " .. tostring(n or "?") .. (self.GetDebugName and (" / " .. tostring(self:GetDebugName())) or ""))
+            end
+            return
+        end
         local new = tr(text)
         if new ~= text then
             busy = true
@@ -572,12 +588,53 @@ local seenLine = setmetatable({}, { __mode = "k" })    -- line FontString -> the
 local function retranslateTooltip(tip)
     if not tip or not tip.GetName or not tip.NumLines then return end
     local name = tip:GetName()
-    if not name then return end
     local changed = false
+    if not name then
+        -- tooltips without a global name (some frames make their own): the lines are plain FontString regions
+        if not tip.GetRegions then return end
+        if ns.tipdebug then
+            local key = "unnamed:" .. tostring(tip:NumLines()) .. ":" .. tostring(tip:IsShown())
+            if ns.lastTipKey ~= key then ns.lastTipKey = key; print("|cff88ccff[tip call]|r (unnamed tooltip) lines=" .. tostring(tip:NumLines())) end
+        end
+        for _, w in ipairs({ tip:GetRegions() }) do
+            if w.GetObjectType and w:GetObjectType() == "FontString" and w.GetText then
+                local t = w:GetText()
+                if type(t) == "string" and t ~= "" and not (issecretvalue and issecretvalue(t)) and seenLine[w] ~= t then
+                    local ok, new = pcall(tr, t)
+                    if not ok then new = t end
+                    if new ~= t then
+                        pcall(w.SetText, w, new)
+                        changed = true
+                        if ns.tipdebug then print("|cff00ff00[tip ok]|r " .. (new:gsub("|", "||"))) end
+                    elseif ns.tipdebug then
+                        print("|cffffff00[tip]|r " .. (t:gsub("|", "||")))
+                    end
+                    seenLine[w] = new
+                end
+            end
+        end
+        if changed then pcall(tip.Show, tip) end
+        return
+    end
+    if ns.tipdebug then
+        local nl = tip:NumLines()
+        local l1 = _G[name .. "TextLeft1"]
+        local key = name .. ":" .. tostring(nl) .. ":" .. tostring(tip:IsShown())
+        if ns.lastTipKey ~= key then
+            ns.lastTipKey = key
+            local own = tip.GetOwner and tip:GetOwner()
+            print("|cff88ccff[tip call]|r " .. name .. " lines=" .. tostring(nl) .. " owner=" .. tostring(own and own.GetName and own:GetName() or "?") ..
+                  " line1secret=" .. tostring(l1 and l1.GetText and issecretvalue and issecretvalue(l1:GetText()) or false))
+        end
+    end
     for i = 1, tip:NumLines() do
         for _, side in ipairs({ "TextLeft", "TextRight" }) do
             local w = _G[name .. side .. i]
             local t = w and w.GetText and w:GetText()
+            if t and ns.tipdebug and issecretvalue and issecretvalue(t) and seenLine[w] ~= "<secret>" then
+                seenLine[w] = "<secret>"
+                print("|cffff8800[tip secret]|r " .. name .. side .. i .. " (the game hides this text from addons)")
+            end
             if t and not (issecretvalue and issecretvalue(t)) and type(t) == "string" and t ~= "" and seenLine[w] ~= t then
                 local trok, new
                 if t == "Back" then trok, new = true, "Kappe"      -- the cloak slot; the button "Back" stays "Tilbage"
@@ -656,6 +713,76 @@ if GameTooltip and GameTooltip.HookScript then
     pcall(GameTooltip.HookScript, GameTooltip, "OnUpdate", function(self)
         if self:IsShown() then safeCall("tooltip update", retranslateTooltip, self) end
     end)
+end
+
+-- Any other tooltip-like frame (name contains "Tooltip", has lines) gets the same treatment as GameTooltip.
+local extraHooked = { GameTooltip = true }
+local function hookOtherTooltips()
+    for name, f in pairs(_G) do
+        if type(name) == "string" and not extraHooked[name] and name:find("Tooltip") and type(f) == "table" then
+            local ok = pcall(function()
+                if f.NumLines and f.HookScript and f.GetObjectType and f:GetObjectType() ~= "FontString" then
+                    extraHooked[name] = true
+                    for _, s in ipairs({ "OnShow", "OnUpdate" }) do
+                        pcall(f.HookScript, f, s, function(self) if self:IsShown() then safeCall("tooltip " .. name, retranslateTooltip, self) end end)
+                    end
+                end
+            end)
+        end
+    end
+end
+do
+    local fx = CreateFrame("Frame")
+    fx:RegisterEvent("PLAYER_LOGIN")
+    fx:RegisterEvent("PLAYER_ENTERING_WORLD")
+    fx:RegisterEvent("ADDON_LOADED")
+    fx:SetScript("OnEvent", function() hookOtherTooltips(); if C_Timer then C_Timer.After(2, hookOtherTooltips) end end)
+    hookOtherTooltips()
+end
+
+-- /df tipwho: 4 seconds later, list every visible tooltip-like frame and what is under the mouse (for finding odd tooltips)
+ns.tipWho = function()
+    print("DanishForever: watching for 12 seconds, move the mouse onto the buff icon and keep it there. Changes are printed.")
+    local last, ticks = "", 0
+    local function tick()
+        ticks = ticks + 1
+        local parts = {}
+        for name, f in pairs(_G) do
+            if type(name) == "string" and type(f) == "table" then
+                pcall(function()
+                    if f.NumLines and f.IsShown and f:IsShown() then
+                        local l1 = _G[name .. "TextLeft1"]
+                        local t = l1 and l1.GetText and l1:GetText()
+                        if issecretvalue and issecretvalue(t) then t = "<secret>" end
+                        parts[#parts + 1] = name .. "(" .. tostring(f:NumLines()) .. ") '" .. tostring(t) .. "'"
+                    end
+                end)
+            end
+        end
+        pcall(function()          -- also frames without a global name (EnumerateFrames sees every frame)
+            local f = EnumerateFrames()
+            while f do
+                if not (f.GetName and f:GetName()) and f.IsShown and f:IsShown() and f.NumLines then
+                    local own = f.GetOwner and f:GetOwner()
+                    parts[#parts + 1] = "UNNAMED " .. tostring(f.GetDebugName and f:GetDebugName() or "?") .. "(" .. tostring(f:NumLines()) ..
+                                        ") owner=" .. tostring(own and own.GetDebugName and own:GetDebugName() or "?")
+                end
+                f = EnumerateFrames(f)
+            end
+        end)
+        table.sort(parts)
+        pcall(function()
+            local foci = GetMouseFoci and GetMouseFoci() or { GetMouseFocus and GetMouseFocus() }
+            for _, f in ipairs(foci) do
+                local nm = f.GetName and f:GetName() or (f.GetDebugName and f:GetDebugName()) or "?"
+                parts[#parts + 1] = "mouse=" .. tostring(nm)
+            end
+        end)
+        local s = table.concat(parts, " | ")
+        if s ~= last then last = s; print("|cff88ccff[tipwho]|r " .. (s:gsub("|", "||"))) end
+        if ticks < 24 then C_Timer.After(0.5, tick) end
+    end
+    tick()
 end
 
 -- Chat: item, spell, quest and achievement links show their name as "[Linen Cloth]" inside |H...|h[...]|h. Chat lines are
