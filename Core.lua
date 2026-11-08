@@ -348,6 +348,13 @@ local function trRaw(text)
     if ns.QuestNames then
         v = ns.QuestNames[text]                              -- quest titles in the tracker and quest log list
         if v then return v end
+        do                                                   -- tracker with quest levels: "[14] Supplies for the Crossroads", "[60+] Title", "[14D] Title"
+            local lvl, qn = text:match("^(%[%d[%d%+%a]*%]%s+)(.+)$")
+            if lvl then
+                local qv = ns.QuestNames[qn]
+                if qv then return lvl .. qv end
+            end
+        end
     end
     if ns.QuestTexts and #text > 40 then
         v = ns.QuestTexts[text]                              -- class/race variants of a quest text

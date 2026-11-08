@@ -4256,7 +4256,7 @@ ns.SpellDescExact = {
     ["Your duty is fulfilled."] = "Din pligt er opfyldt.",
     ["Your eyes are filled with spectral flame, granting sight beyond the mortal veil."] = "Dine øjne er fyldt med spektral flamme, hvilket giver syn hinsides det dødelige slør.",
     ["Your feline eyes allow you to see further in the dark."] = "Dine kattelignende øjne lader dig se længere i mørket.",
-    ["Your finishing moves now refund 30 energy on a Miss, Dodge, Block, or Parry."] = "Dine afslutningstræk refunderer nu 30 energi ved en frøken, undvigelse, blok eller parering.",
+    ["Your finishing moves now refund 30 energy on a Miss, Dodge, Block, or Parry."] = "Dine afslutningstræk refunderer nu 30 energi ved et forbi, en undvigelse, en blok eller en parering.",
     ["Your heart and mind feel heavy with doubt, you can feel the darkness spreading within you."] = "Dit hjerte og sind føles tunge af tvivl, og du kan mærke mørket brede sig inde i dig.",
     ["Your heart has been weakened...."] = "Dit hjerte er blevet svækket....",
     ["Your helpful spells and abilities have no Mana cost. Cancelled by entering combat."] = "Dine gavnlige besværgelser og evner koster ingen mana. Annulleres ved at gå ind i kamp.",
@@ -15444,7 +15444,7 @@ ns.SpellDescTemplates = {
         {"^Your% Faerie% Fire% %(Feral%)% also% increases% the% chance% for% all% attacks% to% hit% that% target% by% (.-)%%% for% (.-)%.$", {2}, "Din Feernes Ild (Vild) øger også træfchanceen for alle angreb mod det mål med ", 1, "% i ", 2, "."},
     },
     ["Your Fer"] = {
-        {"^Your% Ferocious% Bite% ability% no% longer% converts% additional% energy% into% damage%,% and% refunds% (.-)% energy% on% a% Dodge%,% Miss%,% or% Parry%.$", {}, "Din evne Voldsomt Bid omdanner ikke længere ekstra energi til skade, og refunderer ", 1, " energi ved en undvigelse, frøken eller parering."},
+        {"^Your% Ferocious% Bite% ability% no% longer% converts% additional% energy% into% damage%,% and% refunds% (.-)% energy% on% a% Dodge%,% Miss%,% or% Parry%.$", {}, "Din evne Voldsomt Bid omdanner ikke længere ekstra energi til skade, og refunderer ", 1, " energi ved en undvigelse, et forbi eller en parering."},
     },
     ["Your Fin"] = {
         {"^Your% Finishing% Moves% have% a% (.-)%%% chance% per% combo% point% spent% to% trigger% Clearcasting% and% extend% the% duration% of% your% active% Tiger%'s% Fury% by% (.-)% sec%.$", {}, "Dine Afslutningstræk har en ", 1, "% chance pr. brugt kombinationspunkt for at udløse Klarsyn og forlænge varigheden af din aktive Tigerens Vrede med ", 2, " sek."},
