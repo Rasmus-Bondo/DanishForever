@@ -29,7 +29,7 @@ local t = {
     ["Scorpid"] = "Skorpid", ["Serpent"] = "Slange", ["Spider"] = "Edderkop", ["Tallstrider"] = "Højstrider",
     ["Turtle"] = "Skildpadde", ["Wind Serpent"] = "Vindslange", ["Wolf"] = "Ulv", ["Dragonhawk"] = "Dragehøg",
     ["Felhunter"] = "Fæl-jæger", ["Imp"] = "Smådjævel", ["Voidwalker"] = "Tomrumsvandrer", ["Succubus"] = "Succubus",
-    ["Doomguard"] = "Undergangsvagt", ["Infernal"] = "Infernalsk", ["Water Elemental"] = "Vandelementar",
+    ["Doomguard"] = "Undergangsvagt", ["Infernal"] = "Helvedesbæst", ["Water Elemental"] = "Vandelementar",
     ["Ghoul"] = "Ghul", ["Mechanical"] = "Mekanisk", ["Nether Ray"] = "Nethergrad", ["Ravager"] = "Hærgerdyr",
     ["Sporebat"] = "Sporeflagermus", ["Warp Stalker"] = "Fordrejningsluskerne", ["Moth"] = "Møl", ["Chimaera"] = "Kimære",
     ["Devilsaur"] = "Djævlesaurus", ["Silithid"] = "Silithid", ["Worm"] = "Orm", ["Rhino"] = "Næsehorn", ["Wasp"] = "Hveps",

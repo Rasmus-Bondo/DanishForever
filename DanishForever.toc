@@ -1,4 +1,4 @@
-## Interface: 16001
+## Interface: 11508, 11509, 11510
 ## Title: Danish Forever
 ## Notes: Joke Danish translation of WoW Classic. Machine-translated, one pass, no regrets.
 ## SavedVariables: DanishForeverDB
