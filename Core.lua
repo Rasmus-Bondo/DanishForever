@@ -2,7 +2,7 @@ local _, ns = ...
 
 -- Danish class names, used where quest/gossip text names the player's own class (<Class>, $c)
 ns.classDa = {
-    Warrior = "Kriger", Paladin = "Korsridder", Hunter = "Jæger", Rogue = "Snigmorder", Priest = "Præst",
+    Warrior = "Kriger", Paladin = "Korsridder", Hunter = "Jæger", Rogue = "Skurk", Priest = "Præst",
     Shaman = "Shaman", Mage = "Magiker", Warlock = "Heksemester", Druid = "Druide",
 }
 

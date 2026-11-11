@@ -52,7 +52,7 @@ ns.Exact = {
     ["Lockpicking"] = "Låsepikning", ["Riding"] = "Ridning",
 
     -- classes and races
-    ["Warrior"] = "Kriger", ["Paladin"] = "Korsridder", ["Hunter"] = "Jæger", ["Rogue"] = "Snigmorder",
+    ["Warrior"] = "Kriger", ["Paladin"] = "Korsridder", ["Hunter"] = "Jæger", ["Rogue"] = "Skurk",
     ["Priest"] = "Præst", ["Shaman"] = "Shaman", ["Mage"] = "Magiker", ["Warlock"] = "Heksemester",
     ["Druid"] = "Druide", ["Human"] = "Menneske", ["Dwarf"] = "Dværg", ["Night Elf"] = "Natalf",
     ["Gnome"] = "Gnom", ["Orc"] = "Ork", ["Undead"] = "Udøde", ["Tauren"] = "Tauren", ["Troll"] = "Trold",

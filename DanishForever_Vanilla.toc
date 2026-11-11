@@ -1,0 +1,55 @@
+## Interface: 11508, 11509, 11510
+## Title: Danish Forever
+## Notes: Joke Danish translation of WoW Classic. Machine-translated, one pass, no regrets.
+## SavedVariables: DanishForeverDB
+## X-Curse-Project-ID: 1776642
+Data_Quests.lua
+QuestExtra.lua
+QuestExtraPL.lua
+QuestExtraML.lua
+Data_Items.lua
+ItemNames2.lua
+ItemDescs2.lua
+Patterns.lua
+PatternsX.lua
+Captured.lua
+Zones.lua
+Titles.lua
+Factions.lua
+Skills.lua
+QuestTexts.lua
+PageTexts.lua
+Areas.lua
+Taxi.lua
+Maps.lua
+Poi.lua
+Enchants.lua
+ItemSets.lua
+Misc.lua
+Tables.lua
+Holidays.lua
+AchievementDescs.lua
+Criteria.lua
+Achievements.lua
+Objects.lua
+Creatures.lua
+Creatures2.lua
+Renown.lua
+CsvMisc.lua
+SpellNames.lua
+MlNames.lua
+MlTitles.lua
+MlSpells.lua
+FactionDescs.lua
+GlobalStrings.lua
+Globals.lua
+EmoteData.lua
+EmoteFilter.lua
+SpellDescs.lua
+SpellMatch.lua
+Data_Gossip.lua
+BookData.lua
+Books.lua
+Gossip.lua
+AuctionHouse.lua
+Core.lua
