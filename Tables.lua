@@ -62,9 +62,9 @@ local t = {
     ["Skinning Knife"] = "Flåkniv", ["Earth Totem"] = "Jordtotem", ["Air Totem"] = "Lufttotem", ["Fire Totem"] = "Ildtotem",
     ["Water Totem"] = "Vandtotem", ["Mining Pick"] = "Minehakke", ["Blacksmith Hammer"] = "Smedehammer",
     ["Arclight Spanner"] = "Buelys-skruenøgle", ["Gyromatic Micro-Adjustor"] = "Gyromatisk Mikrojustering",
-    ["Runed Copper Rod"] = "Runebesat Kobberstav", ["Runed Silver Rod"] = "Runebesat Sølvstav",
-    ["Runed Golden Rod"] = "Runebesat Guldstav", ["Runed Truesilver Rod"] = "Runebesat Ægte-sølvstav",
-    ["Runed Arcanite Rod"] = "Runebesat Arkanit-stav", ["Master Totem"] = "Mestertotem",
+    ["Runed Copper Rod"] = "Runebesat Kobberstang", ["Runed Silver Rod"] = "Runebesat Sølvstang",
+    ["Runed Golden Rod"] = "Runebesat Guldstang", ["Runed Truesilver Rod"] = "Runebesat Ægte-sølvstang",
+    ["Runed Arcanite Rod"] = "Runebesat Arkanit-stang", ["Master Totem"] = "Mestertotem",
 
     -- quest categories (quest log headers that are not zones) and quest types
     ["Class Quests"] = "Klasseopgaver", ["Professions"] = "Håndværk", ["Daily"] = "Daglig", ["Weekly"] = "Ugentlig",
