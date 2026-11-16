@@ -801,19 +801,58 @@ ns.translateLinks = translateLinks
 -- System lines (level up, reputation, experience, honor) arrive from the game already formatted in English, so the whole line
 -- goes through the normal translator. Player chat is never translated this way.
 local SYSTEM_EVENTS = { CHAT_MSG_SYSTEM = true, CHAT_MSG_COMBAT_FACTION_CHANGE = true, CHAT_MSG_COMBAT_XP_GAIN = true,
-                        CHAT_MSG_COMBAT_HONOR_GAIN = true, CHAT_MSG_SKILL = true }
+                        CHAT_MSG_COMBAT_HONOR_GAIN = true, CHAT_MSG_SKILL = true,
+                        CHAT_MSG_MONSTER_SAY = true, CHAT_MSG_MONSTER_YELL = true, CHAT_MSG_MONSTER_WHISPER = true,
+                        CHAT_MSG_MONSTER_EMOTE = true, CHAT_MSG_MONSTER_PARTY = true, CHAT_MSG_RAID_BOSS_EMOTE = true,
+                        CHAT_MSG_RAID_BOSS_WHISPER = true }
 local function translateSystem(m)
     if m:find("^Congratulations, you have reached ") then
         m = m:gsub("^Congratulations, you have reached ", "Tillykke, du har nået ", 1)
-        m = m:gsub("%[Level (%d+)%]", "[Niveau %1]"):gsub("level (%d+)", "niveau %1")
+        m = m:gsub("Level (%d+)", "Niveau %1"):gsub("level (%d+)", "niveau %1")
         return m
     end
+    local STATS = { Strength = "Styrke", Agility = "Smidighed", Stamina = "Udholdenhed", Intellect = "Intellekt", Spirit = "Ånd" }
+    local stat, amt = m:match("^Your (%a+) increases by (%d+)%.$")
+    if stat and STATS[stat] then return "Din " .. STATS[stat] .. " øges med " .. amt .. "." end
+    local hp, mp = m:match("^You have gained (%d+) hit points and (%d+) mana%.$")
+    if hp then return "Du har opnået " .. hp .. " livspoint og " .. mp .. " mana." end
+    local hp2 = m:match("^You have gained (%d+) hit points%.$")
+    if hp2 then return "Du har opnået " .. hp2 .. " livspoint." end
     local n = m:match("^You have gained (%d+) talent points?%.$")
     if n then return "Du har fået " .. n .. " talentpoint." end
     local r = tr(m)
     if r ~= m then return r end
     return m
 end
+
+-- The level-up lines are printed by the game straight into the chat frame (no chat event), so the event filter never sees
+-- them. Wrap AddMessage on each chat frame for just those lines.
+local function isLevelUpLine(m)
+    return m:find("^Congratulations, you have reached ") or m:find("^You have gained %d+ hit points")
+        or m:find("^You have gained %d+ talent point") or m:find("^Your %a+ increases by %d+%.$")
+end
+local function wrapChatFrames()
+    for i = 1, (NUM_CHAT_WINDOWS or 10) do
+        local f = _G["ChatFrame" .. i]
+        if f and f.AddMessage and not f.dfWrapped then
+            f.dfWrapped = true
+            local orig = f.AddMessage
+            f.AddMessage = function(self, msg, ...)
+                if type(msg) == "string" and not (issecretvalue and issecretvalue(msg)) then
+                    local plain = msg:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+                    local pre, body = plain:match("^(%[?%d+:%d+[:%d]*%]?%s*)(.*)$")
+                    if not pre then pre, body = "", plain end
+                    if isLevelUpLine(body) then
+                        local ok, r = pcall(translateSystem, body)
+                        if ok and r and r ~= body then msg = pre .. r end
+                    end
+                end
+                return orig(self, msg, ...)
+            end
+        end
+    end
+end
+pcall(wrapChatFrames)
 
 if ChatFrame_AddMessageEventFilter then
     local function chatFilter(_, event, msg, ...)
@@ -831,6 +870,8 @@ if ChatFrame_AddMessageEventFilter then
         return false
     end
     for _, ev in ipairs({ "CHAT_MSG_COMBAT_FACTION_CHANGE", "CHAT_MSG_COMBAT_XP_GAIN", "CHAT_MSG_COMBAT_HONOR_GAIN",
+                          "CHAT_MSG_MONSTER_SAY", "CHAT_MSG_MONSTER_YELL", "CHAT_MSG_MONSTER_WHISPER", "CHAT_MSG_MONSTER_EMOTE",
+                          "CHAT_MSG_MONSTER_PARTY", "CHAT_MSG_RAID_BOSS_EMOTE", "CHAT_MSG_RAID_BOSS_WHISPER",
                           "CHAT_MSG_LOOT", "CHAT_MSG_SYSTEM", "CHAT_MSG_SKILL", "CHAT_MSG_TRADESKILLS", "CHAT_MSG_SAY", "CHAT_MSG_YELL",
                           "CHAT_MSG_PARTY", "CHAT_MSG_PARTY_LEADER", "CHAT_MSG_RAID", "CHAT_MSG_RAID_LEADER", "CHAT_MSG_GUILD",
                           "CHAT_MSG_OFFICER", "CHAT_MSG_WHISPER", "CHAT_MSG_WHISPER_INFORM", "CHAT_MSG_CHANNEL" }) do
