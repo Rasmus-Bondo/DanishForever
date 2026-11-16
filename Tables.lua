@@ -25,7 +25,7 @@ local t = {
 
     -- creature families (hunter pets)
     ["Bat"] = "Flagermus", ["Bear"] = "Bjørn", ["Boar"] = "Vildsvin", ["Carrion Bird"] = "Ådselsfugl", ["Cat"] = "Kat",
-    ["Crab"] = "Krabbe", ["Crocolisk"] = "Krokolisk", ["Gorilla"] = "Gorilla", ["Hyena"] = "Hyæne", ["Raptor"] = "Rovfugl",
+    ["Crab"] = "Krabbe", ["Crocolisk"] = "Krokolisk", ["Gorilla"] = "Gorilla", ["Hyena"] = "Hyæne", ["Øgle"] = "Øgle",
     ["Scorpid"] = "Skorpid", ["Serpent"] = "Slange", ["Spider"] = "Edderkop", ["Tallstrider"] = "Højstrider",
     ["Turtle"] = "Skildpadde", ["Wind Serpent"] = "Vindslange", ["Wolf"] = "Ulv", ["Dragonhawk"] = "Dragehøg",
     ["Felhunter"] = "Fæl-jæger", ["Imp"] = "Smådjævel", ["Voidwalker"] = "Tomrumsvandrer", ["Succubus"] = "Succubus",
@@ -34,7 +34,7 @@ local t = {
     ["Sporebat"] = "Sporeflagermus", ["Warp Stalker"] = "Fordrejningsluskerne", ["Moth"] = "Møl", ["Chimaera"] = "Kimære",
     ["Devilsaur"] = "Djævlesaurus", ["Silithid"] = "Silithid", ["Worm"] = "Orm", ["Rhino"] = "Næsehorn", ["Wasp"] = "Hveps",
     ["Core Hound"] = "Kernehund", ["Spirit Beast"] = "Åndedyr", ["Monkey"] = "Abe", ["Aquatic"] = "Vanddyr",
-    ["Dog"] = "Hund", ["Beetle"] = "Bille", ["Tiger"] = "Tiger", ["Bird of Prey"] = "Rovfugl", ["Owl"] = "Ugle",
+    ["Dog"] = "Hund", ["Beetle"] = "Bille", ["Tiger"] = "Tiger", ["Bird of Prey"] = "Øgle", ["Owl"] = "Ugle",
     ["Hawk"] = "Høg", ["Pig"] = "Gris", ["Ram"] = "Vædder", ["Goat"] = "Ged", ["Horse"] = "Hest", ["Skeleton"] = "Skelet",
 
     -- shapeshift forms and stances
