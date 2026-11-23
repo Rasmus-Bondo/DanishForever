@@ -427,12 +427,23 @@ end
 
 -- The map and other busy frames set the same labels over and over; the result for a given text never changes, so keep it
 -- (untranslatable text too, which is the expensive case: it runs through every step before giving up).
+-- Item use lines end in "(30 Sec Cooldown)" / "(5 Min Cooldown)" / "(1 Hr 30 Min Cooldown)"; the first part is translated by the other steps,
+-- this turns the cooldown part into Danish whatever the rest of the line looks like.
+local function cooldownFix(s)
+    if not s:find("Cooldown%)", 1, false) then return s end
+    return (s:gsub("(%d[%d%.,]* [%a%d%. ]-)Cooldown%)", function(t)
+        t = t:gsub("Secs?", "Sek."):gsub("Mins?", "Min."):gsub("Hrs?", "t."):gsub("Days?", "dag")
+        return t .. "Nedkøling)"
+    end))
+end
+
 tr = function(text)
     if type(text) ~= "string" or #text > 600 or (issecretvalue and issecretvalue(text)) then return trRaw(text) end
     local c = trCache[text]
     if c then return c end
     local r = trRaw(text)
     if type(r) == "string" then
+        r = cooldownFix(r)
         trCacheN = trCacheN + 1
         if trCacheN > 40000 then trCache, trCacheN = {}, 1 end
         trCache[text] = r
