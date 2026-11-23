@@ -16,7 +16,7 @@ local names = {
     ["The battle at Darkspear Islands is heating up. Join up and prove your might!"] = "Slaget ved Mørkspyd-øerne bliver hedere. Tilmeld dig og bevis din styrke!",
     ["The battle for Alterac Valley grows intense. Greater honor is given to those who pledge sword to their liege and battle in Alterac."] = "Slaget om Alterac-dalen bliver intenst. Større ære gives til dem, der sværger deres sværd til deres herre og kæmper i Alterac.",
     ["The battle for Arathi Basin grows intense. Greater honor is given to those who pledge sword to their liege and battle in Arathi."] = "Slaget om Arathi-bækkenet bliver intenst. Større ære gives til dem, der sværger deres sværd til deres herre og kæmper i Arathi.",
-    ["The battle for Warsong Gulch grows intense. Greater honor is given to those who pledge sword to their liege and battle in the Gulch."] = "Slaget om Krigssang-Gulch bliver intenst. Større ære gives til dem, der sværger deres sværd til deres herre og kæmper i Kløften.",
+    ["The battle for Warsong Gulch grows intense. Greater honor is given to those who pledge sword to their liege and battle in the Gulch."] = "Slaget om Krigssangs-slugten bliver intenst. Større ære gives til dem, der sværger deres sværd til deres herre og kæmper i Kløften.",
     ["The feast of Noblegarden has arrived. The proving grounds of each race, the place where young heroes first test their strength, each holds cleverly hidden treasure eggs. How many can you find?"] = "Adelshavens Festmåltid er ankommet. Hver races prøvepladser, stedet hvor unge helte første gang afprøver deres styrke, gemmer hver især snedigt skjulte skatteæg. Hvor mange kan du finde?",
 }
 for en, da in pairs(names) do
